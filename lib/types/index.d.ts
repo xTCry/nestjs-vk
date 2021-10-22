@@ -1,0 +1,6 @@
+import { Composer, Middleware } from 'middleware-io';
+export declare type Filter<T extends any[], F> = T extends [] ? [] : T extends [infer Head, ...infer Tail] ? Head extends F ? Filter<Tail, F> : [Head, ...Filter<Tail, F>] : [];
+export declare type OnlyFunctionPropertyNames<T> = {
+    [K in keyof T]: T[K] extends (...args: any) => any ? K : never;
+}[keyof T];
+export declare type ComposerMethodArgs<T extends Composer<never>, U extends OnlyFunctionPropertyNames<T> = OnlyFunctionPropertyNames<T>> = Filter<Parameters<T[U]>, Middleware<never>>;

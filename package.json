@@ -1,0 +1,58 @@
+{
+  "name": "nestjs-vk",
+  "version": "4.4.0-rc.1",
+  "description": "VK-IO module for NestJS",
+  "keywords": [
+    "nest",
+    "nestjs",
+    "nestjs-module",
+    "vk",
+    "vk-io",
+    "vk bot",
+    "vk bot api",
+    "bot",
+    "bot api",
+    "bot framework"
+  ],
+  "homepage": "https://github.com/xTCry/nestjs-vk#readme",
+  "bugs": {
+    "url": "https://github.com/xTCry/nestjs-vk/issues"
+  },
+  "repository": "git@github.com:xTCry/nestjs-vk.git",
+  "license": "MIT",
+  "author": "",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "prebuild-nest": "rimraf dist",
+    "build-nest": "nest build",
+    "build": "rimraf dist && tsc -p tsconfig.json",
+    "prepublish:npm": "npm run build",
+    "publish:npm": "npm publish --access public"
+  },
+  "dependencies": {
+    "@vk-io/hear": "^1.1.0",
+    "@vk-io/scenes": "^1.1.0",
+    "@vk-io/session": "^2.1.0",
+    "lodash": "^4.17.21",
+    "rimraf": "^3.0.2",
+    "vk-io": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "4.14.171",
+    "@nestjs/core": "7.6.18",
+    "@nestjs/common": "7.6.18",
+    "prettier": "2.3.2",
+    "reflect-metadata": "0.1.13",
+    "rxjs": "6.6.7",
+    "middleware-io": "^2.8.0",
+    "typescript": "4.3.5"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^6.7.0 || ^7.0.0",
+    "@nestjs/core": "^6.7.0 || ^7.0.0",
+    "reflect-metadata": "^0.1.13",
+    "vk-io": "^4.0.0",
+    "typescript": "^4.1.2"
+  }
+}
