@@ -8,7 +8,7 @@ import { HearManager } from '@vk-io/hear';
 
 export interface VkModuleOptions {
   token: string;
-  botName?: string;
+  vkName?: string;
   options?: Partial<VKOptions>;
   launchOptions?: { webhook?: IWebhookTransportStartOptions } | false;
   include?: Function[];
@@ -25,7 +25,7 @@ export interface VkOptionsFactory {
 }
 
 export interface VkModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-  botName?: string;
+  vkName?: string;
   useExisting?: Type<VkOptionsFactory>;
   useClass?: Type<VkOptionsFactory>;
   useFactory?: (...args: any[]) => Promise<VkModuleOptions> | VkModuleOptions;

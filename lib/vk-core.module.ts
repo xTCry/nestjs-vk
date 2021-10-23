@@ -1,11 +1,12 @@
 import { DiscoveryModule, ModuleRef } from '@nestjs/core';
 import { DynamicModule, Global, Inject, Module, OnApplicationShutdown, Provider, Type } from '@nestjs/common';
+import { VK } from 'vk-io';
 
 import { VkModuleAsyncOptions, VkModuleOptions, VkOptionsFactory } from './interfaces';
-import { VK_BOT_NAME, VK_MODULE_OPTIONS } from './vk.constants';
+import { VK_API_NAME, VK_MODULE_OPTIONS } from './vk.constants';
 import { ListenersExplorerService, MetadataAccessorService } from './services';
 import { sessionManagerProvider, sceneManagerProvider, hearManagerProvider } from './providers';
-import { createBotFactory, getBotToken } from './utils';
+import { createVkApiFactory, getVkApiToken } from './utils';
 
 @Global()
 @Module({
@@ -14,30 +15,30 @@ import { createBotFactory, getBotToken } from './utils';
 })
 export class VkCoreModule implements OnApplicationShutdown {
   constructor(
-    @Inject(VK_BOT_NAME)
-    private readonly botName: string,
+    @Inject(VK_API_NAME)
+    private readonly vkApiName: string,
     private readonly moduleRef: ModuleRef,
   ) {}
 
   public static forRoot(options: VkModuleOptions): DynamicModule {
-    const vkBotName = getBotToken(options.botName);
+    const vkApiName = getVkApiToken(options.vkName);
 
-    const vkBotNameProvider = {
-      provide: VK_BOT_NAME,
-      useValue: vkBotName,
+    const vkApiNameProvider = {
+      provide: VK_API_NAME,
+      useValue: vkApiName,
     };
 
-    const vkBotProvider: Provider = {
-      provide: vkBotName,
-      useFactory: async () => await createBotFactory(options),
+    const vkApiProvider: Provider = {
+      provide: vkApiName,
+      useFactory: async () => await createVkApiFactory(options),
     };
 
     const providers = [
       sessionManagerProvider,
       sceneManagerProvider,
       hearManagerProvider,
-      vkBotNameProvider,
-      vkBotProvider,
+      vkApiNameProvider,
+      vkApiProvider,
     ];
 
     return {
@@ -54,16 +55,16 @@ export class VkCoreModule implements OnApplicationShutdown {
   }
 
   public static forRootAsync(options: VkModuleAsyncOptions): DynamicModule {
-    const vkBotName = getBotToken(options.botName);
+    const vkApiName = getVkApiToken(options.vkName);
 
-    const vkBotNameProvider = {
-      provide: VK_BOT_NAME,
-      useValue: vkBotName,
+    const vkApiNameProvider = {
+      provide: VK_API_NAME,
+      useValue: vkApiName,
     };
 
-    const vkBotProvider: Provider = {
-      provide: vkBotName,
-      useFactory: async (options: VkModuleOptions) => await createBotFactory(options),
+    const vkApiProvider: Provider = {
+      provide: vkApiName,
+      useFactory: async (options: VkModuleOptions) => await createVkApiFactory(options),
       inject: [VK_MODULE_OPTIONS],
     };
 
@@ -73,8 +74,8 @@ export class VkCoreModule implements OnApplicationShutdown {
       sessionManagerProvider,
       sceneManagerProvider,
       hearManagerProvider,
-      vkBotNameProvider,
-      vkBotProvider,
+      vkApiNameProvider,
+      vkApiProvider,
     ];
 
     return {
@@ -86,8 +87,8 @@ export class VkCoreModule implements OnApplicationShutdown {
   }
 
   async onApplicationShutdown(): Promise<void> {
-    const bot = this.moduleRef.get<any>(this.botName);
-    bot && (await bot.stop());
+    const vk = this.moduleRef.get<VK>(this.vkApiName);
+    vk && (await vk.updates.stop());
   }
 
   private static createAsyncProviders(options: VkModuleAsyncOptions): Provider[] {

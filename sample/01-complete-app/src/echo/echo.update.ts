@@ -1,5 +1,5 @@
 import { UseFilters, UseGuards } from '@nestjs/common';
-import { InjectVkBot, Update, On, Ctx, Next, Message, Hears, HearFallback } from '../../../../';
+import { InjectVkApi, Update, On, Ctx, Next, Message, Hears, HearFallback } from '../../../../';
 import { MessageContext, VK } from 'vk-io';
 import { NextMiddleware } from 'middleware-io';
 
@@ -13,7 +13,7 @@ export class EchoUpdate {
   public groupId: number;
 
   constructor(
-    @InjectVkBot()
+    @InjectVkApi()
     private readonly bot: VK,
     private readonly echoService: EchoService,
   ) {}

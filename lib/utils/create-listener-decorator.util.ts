@@ -1,4 +1,4 @@
-import { LISTENERS_METADATA } from '../vk.constants';
+import { VK_LISTENERS_METADATA } from '../vk.constants';
 import { ListenerMetadata } from '../interfaces';
 import { HandlerType } from '../types';
 
@@ -14,9 +14,9 @@ export function createListenerDecorator<E = any, A = any>(handlerType: HandlerTy
         },
       ];
 
-      const previousValue = Reflect.getMetadata(LISTENERS_METADATA, descriptor.value) || [];
+      const previousValue = Reflect.getMetadata(VK_LISTENERS_METADATA, descriptor.value) || [];
       const value = [...previousValue, ...metadata];
-      Reflect.defineMetadata(LISTENERS_METADATA, value, descriptor.value);
+      Reflect.defineMetadata(VK_LISTENERS_METADATA, value, descriptor.value);
       return descriptor;
     };
   };

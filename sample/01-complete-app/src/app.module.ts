@@ -1,5 +1,5 @@
 import { Global, Module, OnModuleInit } from '@nestjs/common';
-import { InjectVkBot, VkModule } from '../../../';
+import { InjectVkApi, VkModule } from '../../../';
 import { VK } from 'vk-io';
 
 import { FeaturesMiddleware } from './middleware/features.middleware';
@@ -34,13 +34,13 @@ const middlewares = [FeaturesMiddleware];
 })
 export class AppModule implements OnModuleInit {
   constructor(
-    @InjectVkBot()
-    private readonly bot: VK,
+    @InjectVkApi()
+    private readonly vk: VK,
   ) {}
 
   async onModuleInit() {
     try {
-      await this.bot.updates.start();
+      await this.vk.updates.start();
     } catch (err) {
       console.error(err);
     }

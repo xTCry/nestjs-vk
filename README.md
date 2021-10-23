@@ -1,7 +1,7 @@
 # NestJS VK
-![npm](https://img.shields.io/npm/dm/nestjs-vk)
-![GitHub last commit](https://img.shields.io/github/last-commit/xtcry/nestjs-vk)
-![NPM](https://img.shields.io/npm/l/nestjs-vk)
+[![npm](https://img.shields.io/npm/v/nestjs-vk.svg?style=flat-square)](https://www.npmjs.com/package/nestjs-vk)
+[![NPM](https://img.shields.io/npm/dt/nestjs-vk.svg?style=flat-square)](https://www.npmjs.com/package/nestjs-vk)
+[![GitHub last commit](https://img.shields.io/github/last-commit/xtcry/nestjs-vk)](https://github.com/xtcry/nestjs-vk)
 
 <img src="https://nestjs.com/img/logo-small.svg" title="NestJS logotype" align="right" width="95" height="148">
 
@@ -47,7 +47,7 @@ export class AppModule {}
 
 Then create `app.update.ts` file and add some decorators for handling VK bot API updates:
 ```typescript
-import { InjectVkBot, Update, Ctx, Message, Hears, HearFallback } from 'nestjs-vk';
+import { InjectVkApi, Update, Ctx, Message, Hears, HearFallback } from 'nestjs-vk';
 import { MessageContext, VK } from 'vk-io';
 import { AppService } from './app.service';
 
@@ -56,14 +56,14 @@ export class AppUpdate {
   public groupId: number;
 
   constructor(
-    @InjectVkBot()
-    private readonly bot: VK,
+    @InjectVkApi()
+    private readonly vk: VK,
     private readonly appService: AppService,
   ) {}
 
   async onModuleInit() {
     try {
-      const [group] = await this.bot.api.groups.getById({});
+      const [group] = await this.vk.api.groups.getById({});
       this.groupId = group.id;
     } catch (err) {
       console.error(err);
@@ -82,7 +82,7 @@ export class AppUpdate {
 
   @Hears(['/sub', 'subscriber'])
   async onSubscriberCommand(@Ctx() ctx: MessageContext) {
-    const isSib = await this.bot.api.groups.isMember({
+    const isSib = await this.vk.api.groups.isMember({
       group_id: String(this.groupId),
       user_id: ctx.senderId,
     });

@@ -15,7 +15,7 @@ import { HearManager } from '@vk-io/hear';
 import { MetadataAccessorService } from './metadata-accessor.service';
 import {
   PARAM_ARGS_METADATA,
-  VK_BOT_NAME,
+  VK_API_NAME,
   VK_MODULE_OPTIONS,
   VK_SESSION_MANAGER,
   VK_SCENE_MANAGER,
@@ -29,7 +29,7 @@ import { VkModuleOptions } from '../interfaces';
 @Injectable()
 export class ListenersExplorerService extends BaseExplorerService implements OnModuleInit {
   private readonly vkParamsFactory = new VkParamsFactory();
-  private bot: VK;
+  private vk: VK;
 
   constructor(
     @Inject(VK_HEAR_MANAGER)
@@ -40,8 +40,8 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     private readonly sceneManager: SceneManager,
     @Inject(VK_MODULE_OPTIONS)
     private readonly vkOptions: VkModuleOptions,
-    @Inject(VK_BOT_NAME)
-    private readonly botName: string,
+    @Inject(VK_API_NAME)
+    private readonly vkName: string,
 
     private readonly moduleRef: ModuleRef,
     private readonly metadataAccessor: MetadataAccessorService,
@@ -53,25 +53,25 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
   }
 
   onModuleInit(): void {
-    this.bot = this.moduleRef.get<VK>(this.botName, { strict: false });
+    this.vk = this.moduleRef.get<VK>(this.vkName, { strict: false });
 
     if (this.vkOptions.middlewaresBefore) {
       const composer = Composer.builder();
       for (const middleware of this.vkOptions.middlewaresBefore) {
         composer.use(middleware);
       }
-      this.bot.updates.use(composer.compose());
+      this.vk.updates.use(composer.compose());
     }
 
     if (this.vkOptions.useSessionManager !== false) {
-      this.bot.updates.use(
+      this.vk.updates.use(
         (this.vkOptions.useSessionManager instanceof SessionManager && this.vkOptions.useSessionManager.middleware) ||
           this.sessionManagerProvider.middleware,
       );
     }
 
     if (this.vkOptions.useSceneManager !== false) {
-      this.bot.updates.use(
+      this.vk.updates.use(
         (this.vkOptions.useSceneManager instanceof SceneManager && this.vkOptions.useSceneManager.middleware) ||
           this.sceneManager.middleware,
       );
@@ -80,7 +80,7 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     this.explore();
 
     if (this.vkOptions.useHearManager !== false) {
-      this.bot.updates.use(
+      this.vk.updates.use(
         (this.vkOptions.useHearManager instanceof HearManager && this.vkOptions.useHearManager.middleware) ||
           this.hearManagerProvider.middleware,
       );
@@ -91,7 +91,7 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
       for (const middleware of this.vkOptions.middlewaresAfter) {
         composer.use(middleware);
       }
-      this.bot.updates.use(composer.compose());
+      this.vk.updates.use(composer.compose());
     }
   }
 
@@ -104,7 +104,7 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
 
   private registerUpdates(modules: Module[]): void {
     const updates = this.flatMap<InstanceWrapper>(modules, (instance) => this.filterUpdates(instance));
-    updates.forEach((wrapper) => this.registerListeners(this.bot.updates, wrapper));
+    updates.forEach((wrapper) => this.registerListeners(this.vk.updates, wrapper));
   }
 
   private filterUpdates(wrapper: InstanceWrapper): InstanceWrapper<unknown> {
