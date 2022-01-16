@@ -21,7 +21,7 @@ const middlewares = [FeaturesMiddleware];
         // useSessionManager: false,
         // useHearManager: false,
         launchOptions: false,
-        notRelpyMessage: true,
+        notReplyMessage: true,
         middlewaresBefore: [featuresMiddleware.middleware],
         include: [EchoModule],
       }),

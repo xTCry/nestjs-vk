@@ -17,7 +17,7 @@ export interface VkModuleOptions {
   useSessionManager?: boolean | SessionManager;
   useSceneManager?: boolean | SceneManager;
   useHearManager?: boolean | HearManager<MessageContext>;
-  notRelpyMessage?: boolean;
+  notReplyMessage?: boolean;
 }
 
 export interface VkOptionsFactory {

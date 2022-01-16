@@ -166,7 +166,7 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
             switch (true) {
               case ctx.is(['message']): {
                 if (typeof result === 'string' || typeof result === 'object') {
-                  if (this.vkOptions.notRelpyMessage) {
+                  if (this.vkOptions.notReplyMessage) {
                     await ctx.send(result);
                   } else {
                     await ctx.reply(result);
