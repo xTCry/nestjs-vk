@@ -1,4 +1,4 @@
-import { Global, Module, OnModuleInit } from '@nestjs/common';
+notReplyMessageimport { Global, Module, OnModuleInit } from '@nestjs/common';
 import { InjectVkApi, VkModule } from '../../../';
 import { VK } from 'vk-io';
 
