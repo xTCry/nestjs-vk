@@ -1,4 +1,4 @@
-notReplyMessageimport { Global, Module, OnModuleInit } from '@nestjs/common';
+import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { InjectVkApi, VkModule } from '../../../';
 import { VK } from 'vk-io';
 
@@ -21,7 +21,7 @@ const middlewares = [FeaturesMiddleware];
         // useSessionManager: false,
         // useHearManager: false,
         launchOptions: false,
-        notRelpyMessage: true,
+        notReplyMessage: true,
         middlewaresBefore: [featuresMiddleware.middleware],
         include: [EchoModule],
       }),

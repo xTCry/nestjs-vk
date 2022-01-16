@@ -1,4 +1,4 @@
-notReplyMessageimport { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ModuleRef, ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { MetadataScanner } from '@nestjs/core/metadata-scanner';
@@ -166,7 +166,7 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
             switch (true) {
               case ctx.is(['message']): {
                 if (typeof result === 'string' || typeof result === 'object') {
-                  if (this.vkOptions.notRelpyMessage) {
+                  if (this.vkOptions.notReplyMessage) {
                     await ctx.send(result);
                   } else {
                     await ctx.reply(result);
