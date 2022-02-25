@@ -185,9 +185,9 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
           break;
         }
         case 'hears': {
-          if (this.vkOptions.useHearManager === false) {
-            break;
-          }
+          // if (this.vkOptions.useHearManager === false) {
+          //   break;
+          // }
 
           if (method === 'onFallback') {
             this.hearManagerProvider.onFallback(getHandler());
