@@ -9,7 +9,7 @@ import { VK, Context, Updates, MessageContext, Composer } from 'vk-io';
 import { AllowArray } from 'vk-io/lib/types';
 import { NextMiddleware } from 'middleware-io';
 import { SessionManager } from '@vk-io/session';
-import { SceneManager } from '@vk-io/scenes';
+import { SceneManager, StepScene } from '@vk-io/scenes';
 import { HearManager } from '@vk-io/hear';
 
 import { MetadataAccessorService } from './metadata-accessor.service';
@@ -71,10 +71,10 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     }
 
     if (this.vkOptions.useSceneManager !== false) {
-      this.vk.updates.use(
-        (this.vkOptions.useSceneManager instanceof SceneManager && this.vkOptions.useSceneManager.middleware) ||
-          this.sceneManager.middleware,
-      );
+      const sceneManager =
+        (this.vkOptions.useSceneManager instanceof SceneManager && this.vkOptions.useSceneManager) || this.sceneManager;
+      this.vk.updates.use(sceneManager.middleware);
+      this.vk.updates.use(sceneManager.middlewareIntercept);
     }
 
     this.explore();
@@ -99,7 +99,7 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     const modules = this.getModules(this.modulesContainer, this.vkOptions.include || []);
 
     this.registerUpdates(modules);
-    // this.registerScenes(modules);
+    this.registerScenes(modules);
   }
 
   private registerUpdates(modules: Module[]): void {
@@ -117,16 +117,12 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     return wrapper;
   }
 
-  /* private registerScenes(modules: Module[]): void {
+  private registerScenes(modules: Module[]): void {
     const scenes = this.flatMap<InstanceWrapper>(modules, (wrapper) => this.filterScenes(wrapper));
     scenes.forEach((wrapper) => {
       const sceneId = this.metadataAccessor.getSceneMetadata(wrapper.instance.constructor);
 
-      // TODO: make it
-      const scene = new StepScene(sceneId);
-      this.sceneManager.addScenes([scene]);
-
-      // // // this.registerListeners(scene, wrapper);
+      this.registerSceneSteps(sceneId, wrapper);
     });
   }
 
@@ -138,7 +134,7 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     if (!isScene) return undefined;
 
     return wrapper;
-  } */
+  }
 
   private registerListeners(updates: Updates, wrapper: InstanceWrapper<unknown>): void {
     const { instance } = wrapper;
@@ -146,6 +142,44 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     this.metadataScanner.scanFromPrototype(instance, prototype, (name) =>
       this.registerIfListener(updates, instance, prototype, name),
     );
+  }
+
+  private registerSceneSteps(sceneId: string, wrapper: InstanceWrapper<any>): void {
+    const { instance } = wrapper;
+    const prototype = Object.getPrototypeOf(instance);
+
+    const steps: { step: number; methodName: string }[] = [];
+
+    let enterHandler;
+    let leaveHandler;
+
+    let index = 0;
+    this.metadataScanner.scanFromPrototype(instance, prototype, (methodName) => {
+      const methodRef = prototype[methodName];
+      const action = this.metadataAccessor.getSceneActionMetadata(methodRef);
+      if (action) {
+        if (action === 'enter') {
+          enterHandler = this.createContextCallback(instance, prototype, methodName);
+        } else {
+          leaveHandler = this.createContextCallback(instance, prototype, methodName);
+        }
+        return;
+      }
+      const step = this.metadataAccessor.getSceneStepMetadata(methodRef);
+      steps.push({ step: step ?? index++, methodName });
+    });
+
+    const scene = new StepScene(sceneId, {
+      enterHandler,
+      leaveHandler,
+      steps: steps
+        .sort((a, b) => a.step - b.step)
+        .map((e) => {
+          const listenerCallbackFn = this.createContextCallback(instance, prototype, e.methodName);
+          return listenerCallbackFn;
+        }),
+    });
+    this.sceneManager.addScenes([scene]);
   }
 
   private registerIfListener(updates: Updates, instance: any, prototype: any, methodName: string): void {
