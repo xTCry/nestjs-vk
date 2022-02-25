@@ -1,6 +1,6 @@
 {
   "name": "nestjs-vk",
-  "version": "4.4.0-rc.2",
+  "version": "4.4.0",
   "description": "VK-IO module for NestJS",
   "homepage": "https://github.com/xTCry/nestjs-vk#readme",
   "bugs": {
