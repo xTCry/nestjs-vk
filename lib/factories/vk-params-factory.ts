@@ -13,7 +13,7 @@ export class VkParamsFactory implements ParamsFactory {
       case VkParamtype.CONTEXT:
         return data && ctx ? ctx[data as string] : ctx;
       case VkParamtype.MESSAGE:
-        return data && ctx.message ? ctx.message[data as string] : ctx.message;
+        return data && ctx.message ? ctx.message?.[data as string] : ctx.message;
       default:
         return null;
     }
