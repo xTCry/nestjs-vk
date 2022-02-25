@@ -14,7 +14,11 @@
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
     "prepublish:npm": "npm run build",
-    "publish:npm": "npm publish --access public"
+    "publish:npm": "npm publish --access public",
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:patch": "standard-version --release-as patch",
+    "release:major": "standard-version --release-as major"
   },
   "dependencies": {
     "@vk-io/hear": "^1.1.0",
@@ -22,6 +26,7 @@
     "@vk-io/session": "^2.1.0",
     "lodash": "^4.17.21",
     "rimraf": "^3.0.2",
+    "standard-version": "^9.3.2",
     "vk-io": "^4.0.0"
   },
   "devDependencies": {
