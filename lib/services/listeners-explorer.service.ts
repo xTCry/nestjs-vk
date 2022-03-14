@@ -64,26 +64,18 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     }
 
     if (this.vkOptions.useSessionManager !== false) {
-      this.vk.updates.use(
-        (this.vkOptions.useSessionManager instanceof SessionManager && this.vkOptions.useSessionManager.middleware) ||
-          this.sessionManagerProvider.middleware,
-      );
+      this.vk.updates.use(this.sessionManagerProvider.middleware);
     }
 
     if (this.vkOptions.useSceneManager !== false) {
-      const sceneManager =
-        (this.vkOptions.useSceneManager instanceof SceneManager && this.vkOptions.useSceneManager) || this.sceneManager;
-      this.vk.updates.use(sceneManager.middleware);
-      this.vk.updates.use(sceneManager.middlewareIntercept);
+      this.vk.updates.use(this.sceneManager.middleware);
+      this.vk.updates.use(this.sceneManager.middlewareIntercept);
     }
 
     this.explore();
 
     if (this.vkOptions.useHearManager !== false) {
-      this.vk.updates.use(
-        (this.vkOptions.useHearManager instanceof HearManager && this.vkOptions.useHearManager.middleware) ||
-          this.hearManagerProvider.middleware,
-      );
+      this.vk.updates.use(this.hearManagerProvider.middleware);
     }
 
     if (this.vkOptions.middlewaresAfter) {
