@@ -1,6 +1,6 @@
 import { ContextType, ExecutionContext } from '@nestjs/common';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
-import { IVkArgumentsHost } from './vk-arguments-host.interace';
+import { IVkArgumentsHost } from './vk-arguments-host.interface';
 
 export type VkontextType = 'vk-io' | ContextType;
 
