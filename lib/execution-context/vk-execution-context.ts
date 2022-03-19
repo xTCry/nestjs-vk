@@ -21,6 +21,6 @@ export class VkExecutionContext extends ExecutionContextHost implements IVkArgum
   }
 
   getNext<T = any>(): T {
-    return this.getArgByIndex(0);
+    return this.getArgByIndex(1);
   }
 }
