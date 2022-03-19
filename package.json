@@ -1,6 +1,6 @@
 {
   "name": "nestjs-vk",
-  "version": "4.4.2",
+  "version": "4.5.0-rc.0",
   "description": "VK-IO module for NestJS",
   "homepage": "https://github.com/xTCry/nestjs-vk#readme",
   "bugs": {
@@ -18,7 +18,8 @@
     "release": "standard-version",
     "release:minor": "standard-version --release-as minor",
     "release:major": "standard-version --release-as major",
-    "release:patch": "standard-version --release-as patch"
+    "release:patch": "standard-version --release-as patch",
+    "release:rc": "standard-version --prerelease rc"
   },
   "dependencies": {
     "@vk-io/hear": "^1.1.0",

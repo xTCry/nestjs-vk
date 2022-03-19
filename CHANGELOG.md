@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.5.0-rc.0](https://github.com/xTCry/nestjs-vk/compare/v4.4.2...v4.5.0-rc.0) (2022-03-19)
+
+
+### 🧹 Chore
+
+* **deps:** up `nestjs` version to 8 ([ffe50cb](https://github.com/xTCry/nestjs-vk/commit/ffe50cb83bba6afb20c7c4393973be34f75d1068))
+* **deps:** updated `vk-io` ([e3f06ef](https://github.com/xTCry/nestjs-vk/commit/e3f06ef9a3a06059d7897499acdec11dd371f75d))
+* **providers:** changed to `useFactory` ([de7f02e](https://github.com/xTCry/nestjs-vk/commit/de7f02eff1ee4ee32cb18d4475cfe8d92c448e0a))
+
+
+### 🐛 Bug Fixes
+
+* **execution-context:** fixed return value of `getNext` ([f97e5cc](https://github.com/xTCry/nestjs-vk/commit/f97e5cc6aff70b9f398b12ca2534d675f52ee65a))
+* **typos:** fixed typos in file name ([1367b8d](https://github.com/xTCry/nestjs-vk/commit/1367b8de9a6ccc3a85b856d12093a15a6742335b))
+
+
+### 🚀 Features
+
+* **decorators:** added `Use` decorator for `vk.updates` ([8c615d0](https://github.com/xTCry/nestjs-vk/commit/8c615d0a5484b8bd834c9830781d83f1a9ed3ca0))
+
 ### 4.4.2 (2022-02-25)
 
 
