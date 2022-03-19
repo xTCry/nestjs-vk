@@ -207,7 +207,11 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
 
       switch (handlerType) {
         case 'vk_updates': {
-          updates[method](event, [...args, getHandler()] as AllowArray<any>);
+          if (method === 'use') {
+            updates.use(getHandler());
+          } else {
+            updates[method](event, [...args, getHandler()] as AllowArray<any>);
+          }
           break;
         }
         case 'hears': {
