@@ -31,7 +31,7 @@ export class MetadataAccessorService {
     return this.reflector.get(VK_SCENE_METADATA, target);
   }
 
-  getSceneStepMetadata(target: Function): number | undefined {
+  getSceneStepMetadata(target: Function): number | boolean | undefined {
     return this.reflector.get(VK_SCENE_STEP_METADATA, target);
   }
 

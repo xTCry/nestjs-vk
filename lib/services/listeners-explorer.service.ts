@@ -157,8 +157,9 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
         }
         return;
       }
-      const step = this.metadataAccessor.getSceneStepMetadata(methodRef);
-      steps.push({ step: step ?? index++, methodName });
+      let step = this.metadataAccessor.getSceneStepMetadata(methodRef);
+      if (step === true) step = currentStep++;
+      if (Number.isInteger(step)) steps.push([step as number, method]);
     });
 
     const scene = new StepScene(sceneId, {
