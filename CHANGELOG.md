@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.5.0](https://github.com/xTCry/nestjs-vk/compare/v4.5.0-rc.0...v4.5.0) (2023-01-27)
+
+
+### 🚀 Features
+
+* **docs:** add scene support ([000a11c](https://github.com/xTCry/nestjs-vk/commit/000a11cf14d028ae9f40dbea9cc2950a0d2b1b46))
+
 ## [4.5.0-rc.0](https://github.com/xTCry/nestjs-vk/compare/v4.4.2...v4.5.0-rc.0) (2022-03-19)
 
 

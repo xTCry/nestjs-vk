@@ -1,6 +1,6 @@
 {
   "name": "nestjs-vk",
-  "version": "4.5.0-rc.0",
+  "version": "4.5.0",
   "description": "VK-IO module for NestJS",
   "homepage": "https://github.com/xTCry/nestjs-vk#readme",
   "bugs": {
@@ -41,8 +41,8 @@
     "typescript": "4.3.5"
   },
   "peerDependencies": {
-    "@nestjs/common": "^6.7.0 || ^7.0.0 || ^8.0.0",
-    "@nestjs/core": "^6.7.0 || ^7.0.0 || ^8.0.0",
+    "@nestjs/common": "^6.7.0 || ^7.0.0 || ^8.0.0 || ^9.0.0",
+    "@nestjs/core": "^6.7.0 || ^7.0.0 || ^8.0.0 || ^9.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.0.0 || ^7.2.0",
     "vk-io": "^4.*"
