@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { VkExecutionContext, VkException } from '../../../../../';
+import { VkExecutionContext, VkException } from 'nestjs-vk';
 import { Context } from '../../interfaces/context.interface';
 
 export const NOT_ADMIN_MESSAGE = 'NOT_ADMIN_MESSAGE';

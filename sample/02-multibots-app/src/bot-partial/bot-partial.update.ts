@@ -10,7 +10,7 @@ import {
   VK_HEAR_MANAGER,
   VK_SESSION_MANAGER,
   VK_SCENE_MANAGER,
-} from '../../../../dist';
+} from 'nestjs-vk';
 import { getRandomId, MessageContext, VK } from 'vk-io';
 import { HearManager } from '@vk-io/hear';
 import { SessionManager } from '@vk-io/session';
@@ -19,6 +19,7 @@ import { NextMiddleware } from 'middleware-io';
 
 import { Context } from '../interfaces/context.interface';
 import { VkExceptionFilter, AdminGuard } from '../common';
+import { BestSceneContextState } from 'src/interfaces/best-scene-context-state';
 
 @Update()
 @UseFilters(VkExceptionFilter)
@@ -47,7 +48,7 @@ export class BotPartialUpdate {
       });
 
     this.sceneManager.addScenes([
-      new StepScene('signup', [
+      new StepScene<{}, BestSceneContextState>('signup', [
         (context) => {
           if (context.scene.step.firstTime || !context.text) {
             return context.send("What's your name?");
@@ -62,7 +63,7 @@ export class BotPartialUpdate {
             return context.send('How old are you?');
           }
 
-          context.scene.state.age = Number(context.text);
+          context.scene.state.age = context.text;
 
           return context.scene.step.next();
         },
@@ -98,7 +99,9 @@ export class BotPartialUpdate {
     const message = `
     Info:
     • hearManagerProvider.length: ${this.hearManagerProvider.length}
-    • sessionManagerProvider.length: ${JSON.stringify(this.sessionManagerProvider).slice(0, 150)}
+    • sessionManagerProvider.length: ${JSON.stringify(
+      this.sessionManagerProvider,
+    ).slice(0, 150)}
     `;
     return message;
   }
