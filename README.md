@@ -119,7 +119,7 @@ export class AppUpdate {
 }
 ```
 
-For a simple scene, let's create an `app.update.ts` file and do a few steps for it:
+For a simple scene, let's create an `simple.scene.ts` file and do a few steps for it:
 
 ```typescript
 import { Scene, AddStep, Ctx, SceneEnter, SceneLeave } from 'nestjs-vk';
