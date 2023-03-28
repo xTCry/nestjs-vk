@@ -1,5 +1,5 @@
 import { Global, Module, OnModuleInit } from '@nestjs/common';
-import { InjectVkApi, VkModule } from '../../../';
+import { InjectVkApi, VkModule } from 'nestjs-vk';
 import { VK } from 'vk-io';
 
 import { FeaturesMiddleware } from './middleware/features.middleware';

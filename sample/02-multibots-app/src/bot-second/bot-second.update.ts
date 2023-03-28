@@ -1,5 +1,11 @@
 import { Inject, UseFilters } from '@nestjs/common';
-import { Update, Ctx, Hears, VK_HEAR_MANAGER, VK_SESSION_MANAGER } from '../../../../dist';
+import {
+  Update,
+  Ctx,
+  Hears,
+  VK_HEAR_MANAGER,
+  VK_SESSION_MANAGER,
+} from 'nestjs-vk';
 import { MessageContext } from 'vk-io';
 import { HearManager } from '@vk-io/hear';
 import { SessionManager } from '@vk-io/session';
@@ -32,7 +38,9 @@ export class BotSecondlUpdate {
     const message = `
     Info:
     • hearManagerProvider.length: ${this.hearManagerProvider.length}
-    • sessionManagerProvider.length: ${JSON.stringify(this.sessionManagerProvider).slice(0, 150)}
+    • sessionManagerProvider.length: ${JSON.stringify(
+      this.sessionManagerProvider,
+    ).slice(0, 150)}
     `;
     return message;
   }

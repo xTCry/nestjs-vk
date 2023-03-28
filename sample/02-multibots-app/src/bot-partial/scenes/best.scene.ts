@@ -1,5 +1,6 @@
 import { IStepContext } from '@vk-io/scenes';
-import { Scene, AddStep, Context, SceneEnter, SceneLeave } from '../../../../../dist';
+import { Scene, AddStep, Context, SceneEnter, SceneLeave } from 'nestjs-vk';
+import { BestSceneContextState } from 'src/interfaces/best-scene-context-state';
 // import { Context } from '../../interfaces/context.interface';
 
 @Scene('BEST_SCEN')
@@ -23,7 +24,7 @@ export class BestScene {
   }
 
   @AddStep(10)
-  step10(@Context() context: IStepContext) {
+  step10(@Context() context: IStepContext<BestSceneContextState>) {
     if (context.scene.step.firstTime || !context.text) {
       return context.send('any for exit or gg for repeat');
     }
@@ -36,7 +37,7 @@ export class BestScene {
   }
 
   @AddStep()
-  step1(@Context() context: IStepContext) {
+  step1(@Context() context: IStepContext<BestSceneContextState>) {
     if (context.scene.step.firstTime || !context.text) {
       return context.send("What's your name?");
     }
@@ -47,18 +48,18 @@ export class BestScene {
   }
 
   @AddStep()
-  step2(@Context() context: IStepContext) {
+  step2(@Context() context: IStepContext<BestSceneContextState>) {
     if (context.scene.step.firstTime || !context.text) {
       return context.send('How old are you?');
     }
 
-    context.scene.state.age = Number(context.text);
+    context.scene.state.age = context.text;
 
     return context.scene.step.next();
   }
 
   @AddStep()
-  async step3(@Context() context: IStepContext) {
+  async step3(@Context() context: IStepContext<BestSceneContextState>) {
     const { firstName, age } = context.scene.state;
 
     await context.send(`👤 ${firstName} ${age} ages`);

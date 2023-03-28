@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { VkModule } from '../../../';
+import { VkModule } from 'nestjs-vk';
 
 import { BotPartialModule } from './bot-partial/bot-partial.module';
 import { BotSecondlModule } from './bot-second/bot-second.module';
