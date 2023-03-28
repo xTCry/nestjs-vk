@@ -1,5 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
-import { VkArgumentsHost } from '../../../../../';
+import { VkArgumentsHost } from 'nestjs-vk';
 import { Context } from '../../interfaces/context.interface';
 import { ADMIN_IDS, NOT_ADMIN_MESSAGE } from '../guards/admin.guard';
 

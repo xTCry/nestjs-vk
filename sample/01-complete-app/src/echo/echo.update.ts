@@ -1,5 +1,14 @@
 import { UseFilters, UseGuards } from '@nestjs/common';
-import { InjectVkApi, Update, On, Ctx, Next, Message, Hears, HearFallback } from '../../../../';
+import {
+  InjectVkApi,
+  Update,
+  On,
+  Ctx,
+  Next,
+  Message,
+  Hears,
+  HearFallback,
+} from 'nestjs-vk';
 import { MessageContext, VK } from 'vk-io';
 import { NextMiddleware } from 'middleware-io';
 
@@ -21,6 +30,7 @@ export class EchoUpdate {
   async onModuleInit() {
     try {
       const [group] = await this.bot.api.groups.getById({});
+
       this.groupId = group.id;
     } catch (err) {
       console.error(err);
@@ -74,7 +84,10 @@ export class EchoUpdate {
   }
 
   @HearFallback()
-  onHearFallback(@Ctx() ctx: MessageContext, @Message('text', new ReverseTextPipe()) reversedText: string) {
+  onHearFallback(
+    @Ctx() ctx: MessageContext,
+    @Message('text', new ReverseTextPipe()) reversedText: string,
+  ) {
     if (reversedText) {
       return this.echoService.echo(reversedText);
     } else if (ctx.hasAttachments('sticker')) {

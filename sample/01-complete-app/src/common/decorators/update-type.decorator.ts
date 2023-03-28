@@ -1,6 +1,7 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { VkExecutionContext } from '../../../../../';
+import { VkExecutionContext } from 'nestjs-vk';
 
 export const UpdateType = createParamDecorator(
-  (_, ctx: ExecutionContext) => VkExecutionContext.create(ctx).getContext().updateType,
+  (_, ctx: ExecutionContext) =>
+    VkExecutionContext.create(ctx).getContext().updateType,
 );
