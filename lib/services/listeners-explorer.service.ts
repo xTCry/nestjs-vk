@@ -20,11 +20,12 @@ import {
   VK_SESSION_MANAGER,
   VK_SCENE_MANAGER,
   VK_HEAR_MANAGER,
+  VK_MANAGERS_OPTIONS,
 } from '../vk.constants';
 import { BaseExplorerService } from './base-explorer.service';
 import { VkParamsFactory } from '../factories/vk-params-factory';
 import { VkontextType } from '../execution-context';
-import { VkModuleOptions } from '../interfaces';
+import { VkManagersOptions, VkModuleOptions } from '../interfaces';
 
 @Injectable()
 export class ListenersExplorerService extends BaseExplorerService implements OnModuleInit {
@@ -40,6 +41,8 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     private readonly sceneManager: SceneManager,
     @Inject(VK_MODULE_OPTIONS)
     private readonly vkOptions: VkModuleOptions,
+    @Inject(VK_MANAGERS_OPTIONS)
+    private readonly vkManagersOptions: VkManagersOptions,
     @Inject(VK_API_NAME)
     private readonly vkName: string,
 
@@ -63,18 +66,18 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
       this.vk.updates.use(composer.compose());
     }
 
-    if (this.vkOptions.useSessionManager !== false) {
+    if (this.vkManagersOptions.useSessionManager !== false) {
       this.vk.updates.use(this.sessionManagerProvider.middleware);
     }
 
-    if (this.vkOptions.useSceneManager !== false) {
+    if (this.vkManagersOptions.useSceneManager !== false) {
       this.vk.updates.use(this.sceneManager.middleware);
       this.vk.updates.use(this.sceneManager.middlewareIntercept);
     }
 
     this.explore();
 
-    if (this.vkOptions.useHearManager !== false) {
+    if (this.vkManagersOptions.useHearManager !== false) {
       this.vk.updates.use(this.hearManagerProvider.middleware);
     }
 

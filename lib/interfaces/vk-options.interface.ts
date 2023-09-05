@@ -6,6 +6,12 @@ import { SessionManager } from '@vk-io/session';
 import { SceneManager } from '@vk-io/scenes';
 import { HearManager } from '@vk-io/hear';
 
+export interface VkManagersOptions {
+  useSessionManager?: boolean | SessionManager;
+  useSceneManager?: boolean | SceneManager;
+  useHearManager?: boolean | HearManager<MessageContext>;
+}
+
 export interface VkModuleOptions {
   token: string;
   vkName?: string;
@@ -14,9 +20,6 @@ export interface VkModuleOptions {
   include?: Function[];
   middlewaresBefore?: ReadonlyArray<Middleware<any>>;
   middlewaresAfter?: ReadonlyArray<Middleware<any>>;
-  useSessionManager?: boolean | SessionManager;
-  useSceneManager?: boolean | SceneManager;
-  useHearManager?: boolean | HearManager<MessageContext>;
   notReplyMessage?: boolean;
 }
 

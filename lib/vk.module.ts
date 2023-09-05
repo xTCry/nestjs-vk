@@ -1,6 +1,8 @@
 import { Module, DynamicModule } from '@nestjs/common';
 import { VkCoreModule } from './vk-core.module';
-import { VkModuleOptions, VkModuleAsyncOptions } from './interfaces';
+import { VkModuleOptions, VkModuleAsyncOptions, VkManagersOptions } from './interfaces';
+import { VK_MANAGERS_OPTIONS } from './vk.constants';
+import { sessionManagerProvider, sceneManagerProvider, hearManagerProvider } from './providers';
 
 @Module({})
 export class VkModule {
@@ -8,7 +10,25 @@ export class VkModule {
     return {
       module: VkModule,
       imports: [VkCoreModule.forRoot(options)],
-      exports: [VkCoreModule],
+    };
+  }
+
+  public static forManagers(options: VkManagersOptions): DynamicModule {
+    const providers = [
+      {
+        provide: VK_MANAGERS_OPTIONS,
+        useValue: options,
+      },
+      sessionManagerProvider,
+      sceneManagerProvider,
+      hearManagerProvider,
+    ];
+
+    return {
+      module: VkModule,
+      providers,
+      exports: [...providers],
+      global: true,
     };
   }
 
@@ -16,7 +36,6 @@ export class VkModule {
     return {
       module: VkModule,
       imports: [VkCoreModule.forRootAsync(options)],
-      exports: [VkCoreModule],
     };
   }
 }
