@@ -22,8 +22,16 @@ This module provides a quick and easy way to interact with the VK API and create
 
 ## Installation
 
+#### NPM
+
 ```bash
 $ npm i nestjs-vk vk-io
+```
+
+#### Yarn
+
+```bash
+$ yarn add nestjs-vk vk-io
 ```
 
 ## Usage
@@ -39,17 +47,81 @@ import { SimpleScene } from './scene/simple.scene';
 
 @Module({
   imports: [
-    VkModule.forRoot({
-      token: process.env.VK_BOT_TOKEN,
-      options: {
-        pollingGroupId: +process.env.VK_BOT_GROUP_ID,
-        apiMode: 'sequential',
-      },
+    VkModule.forManagers({
+      useSessionManager: false,
+      useSceneManager: false,
+      useHearManager: false,
     }),
+    VkModule.forRootAsync({
+      inject: [MainMiddleware],
+      useFactory: async (mainMiddleware: MainMiddleware) => ({
+        token: process.env.VK_BOT_TOKEN,
+        options: {
+            pollingGroupId: +process.env.VK_BOT_GROUP_ID,
+            apiMode: 'sequential',
+        },
+        // launchOptions: false,
+        // notReplyMessage: true,
+        middlewaresBefore: [mainMiddleware.middlewaresBefore],
+        middlewaresAfter: [mainMiddleware.middlewaresAfter],
+      }),
+    }),
+    // VkModule.forRoot({
+    //   token: process.env.VK_BOT_TOKEN,
+    //   options: {
+    //     pollingGroupId: +process.env.VK_BOT_GROUP_ID,
+    //     apiMode: 'sequential',
+    //   },
+    // }),
   ],
-  providers: [AppUpdate, SimpleScene],
+  providers: [MainMiddleware, AppUpdate, SimpleScene],
+  exports: [MainMiddleware],
 })
 export class AppModule {}
+```
+
+
+Main middleware `main.middleware.ts`:
+
+```typescript
+import { Inject, Injectable } from '@nestjs/common';
+import { VK_HEAR_MANAGER, VK_SCENE_MANAGER } from 'nestjs-vk';
+import { MessageContext, Context, Composer } from 'vk-io';
+import { HearManager } from '@vk-io/hear';
+import { SessionManager } from '@vk-io/session';
+import { SceneManager } from '@vk-io/scenes';
+
+@Injectable()
+export class MainMiddleware {
+  private readonly sessionManager: SessionManager;
+  @Inject(VK_HEAR_MANAGER)
+  private readonly hearManagerProvider: HearManager<MessageContext>;
+  @Inject(VK_SCENE_MANAGER)
+  private readonly sceneManager: SceneManager;
+
+  constructor() {
+    this.sessionManager = new SessionManager({
+      // ...
+    });
+  }
+
+  get middlewaresBefore() {
+    const composer = Composer.builder<Context>();
+
+    composer.use(this.sessionManager.middleware);
+    composer.use(this.sceneManager.middleware);
+
+    return composer.compose();
+  }
+
+  get middlewaresAfter() {
+    const composer = Composer.builder<Context>();
+
+    composer.use(this.hearManagerProvider.middleware);
+
+    return composer.compose();
+  }
+}
 ```
 
 Then create `app.update.ts` file and add some decorators for handling VK bot API updates:
