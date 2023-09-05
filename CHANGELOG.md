@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.5.1](https://github.com/xTCry/nestjs-vk/compare/v4.5.0...v4.5.1) (2023-09-05)
+
+
+### 🐛 Bug Fixes
+
+* **type:** simple.scene.ts ([799579b](https://github.com/xTCry/nestjs-vk/commit/799579b3f6363adb1a26c0bcc9b101acae05795c))
+* **typo:** return .env in .gitignore ([d69d8e0](https://github.com/xTCry/nestjs-vk/commit/d69d8e0c677678c0469e1ad35f7bc59375ac2804))
+
+
+### 🚀 Features
+
+* **sample:** update deps 01-complete-app ([6ff0f2a](https://github.com/xTCry/nestjs-vk/commit/6ff0f2a9e639d8c246d94f850f40a497982ab96c))
+* **sample:** update deps 02-complete-app ([f702be7](https://github.com/xTCry/nestjs-vk/commit/f702be75e7d0bc407c788f312f5e6697a0b0820d))
+
+
+### 🧹 Chore
+
+* **decorators:** remove type `ParameterDecorator` from `InjectVkApi` ([92544d1](https://github.com/xTCry/nestjs-vk/commit/92544d17709cec13053f4a78775dbec54d958d70))
+* **deps:** update ([ee30a41](https://github.com/xTCry/nestjs-vk/commit/ee30a4159382fe0c5ef76838c9af11c045987153))
+
 ## [4.5.0](https://github.com/xTCry/nestjs-vk/compare/v4.5.0-rc.0...v4.5.0) (2023-01-27)
 
 
