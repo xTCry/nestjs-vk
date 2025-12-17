@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.6.1](https://github.com/xTCry/nestjs-vk/compare/v4.6.0...v4.6.1) (2025-12-17)
+
+
+### 🧹 Chore
+
+* **deps:** update (nestjs v11) ([168fbe6](https://github.com/xTCry/nestjs-vk/commit/168fbe6a2d1fa9685517f839ed1e369d9217e7f2))
+* **prettier:** add format code ([ce1dd6d](https://github.com/xTCry/nestjs-vk/commit/ce1dd6d2187e25f0fbad6e5d029b51dea32ae542))
+* **readme:** update simple usage code ([8084ab1](https://github.com/xTCry/nestjs-vk/commit/8084ab1962dcfda56d3088a47205b9b40d7b70f8))
+
 ## [4.6.0](https://github.com/xTCry/nestjs-vk/compare/v4.5.1...v4.6.0) (2023-09-05)
 
 
