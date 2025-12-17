@@ -24,29 +24,29 @@
   },
   "dependencies": {
     "@vk-io/hear": "^1.1.0",
-    "@vk-io/scenes": "^1.1.0",
-    "@vk-io/session": "^2.1.0",
+    "@vk-io/scenes": "^1.2.0",
+    "@vk-io/session": "^2.2.0",
     "lodash": "^4.17.21",
-    "rimraf": "^3.0.2",
-    "standard-version": "^9.3.2"
+    "rimraf": "^6.1.2",
+    "standard-version": "^9.5.0"
   },
   "devDependencies": {
-    "@nestjs/common": "^9.0.0",
-    "@nestjs/core": "^9.0.0",
-    "@types/lodash": "4.14.195",
+    "@nestjs/common": "^11.1.0",
+    "@nestjs/core": "^11.1.0",
+    "@types/lodash": "4.17.21",
     "middleware-io": "^2.8.1",
-    "prettier": "3.0.3",
-    "reflect-metadata": "0.1.13",
-    "rxjs": "^7.5.5",
-    "typescript": "4.3.5",
-    "vk-io": "^4.8.3"
+    "prettier": "3.7.4",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "^7.8.2",
+    "typescript": "5.9.3",
+    "vk-io": "^4.10.0"
   },
   "peerDependencies": {
-    "@nestjs/common": "^6.7.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0",
-    "@nestjs/core": "^6.7.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0",
-    "reflect-metadata": "^0.1.13",
+    "@nestjs/common": "^9.0.0 || ^10.0.0 || ^11.0.0",
+    "@nestjs/core": "^9.0.0 || ^10.0.0 || ^11.0.0",
+    "reflect-metadata": "^0.2.2",
     "rxjs": "^6.0.0 || ^7.2.0",
-    "vk-io": "^4.0.0"
+    "vk-io": "^4.10.0"
   },
   "keywords": [
     "nest",
