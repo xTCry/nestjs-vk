@@ -57,8 +57,8 @@ import { SimpleScene } from './scene/simple.scene';
       useFactory: async (mainMiddleware: MainMiddleware) => ({
         token: process.env.VK_BOT_TOKEN,
         options: {
-            pollingGroupId: +process.env.VK_BOT_GROUP_ID,
-            apiMode: 'sequential',
+          pollingGroupId: +process.env.VK_BOT_GROUP_ID,
+          apiMode: 'sequential',
         },
         // launchOptions: false,
         // notReplyMessage: true,
@@ -79,7 +79,6 @@ import { SimpleScene } from './scene/simple.scene';
 })
 export class AppModule {}
 ```
-
 
 Main middleware `main.middleware.ts`:
 
@@ -127,8 +126,8 @@ export class MainMiddleware {
 Then create `app.update.ts` file and add some decorators for handling VK bot API updates:
 
 ```typescript
-import { InjectVkApi, Update, Ctx, Message, Hears, HearFallback } from 'nestjs-vk';
-import { MessageContext, VK } from 'vk-io';
+import { InjectVkApi, Update, Ctx, Message, Hears, HearFallback, OnMessageEvent } from 'nestjs-vk';
+import { MessageContext, MessageEventContext, VK } from 'vk-io';
 
 import { AppService } from './app.service';
 import { SIMPLE_SCENE } from './vk.constants';
@@ -162,6 +161,16 @@ export class AppUpdate {
     return 'Hey there';
   }
 
+  @OnMessageEvent({ broadcastAction: 'queue' })
+  async onQueueAction(@Ctx() ctx: MessageEventContext) {
+    await ctx.answer({ type: 'show_snackbar', text: 'Queue opened' });
+  }
+
+  @OnMessageEvent((payload) => payload?.phrase === 'schedule-notification' || Boolean(payload?.scheduleNotifAction))
+  async onScheduleNotification(@Ctx() ctx: MessageEventContext) {
+    await ctx.answer({ type: 'show_snackbar', text: 'Notifications opened' });
+  }
+
   @Hears(/scene( ?(?<state>[0-9]+))?$/i)
   async hearsScene(@Ctx() ctx: MessageContext) {
     const stateNumber = ((e) => (isNaN(Number(e)) ? null : Number(e)))(ctx.$match?.groups?.state);
@@ -190,6 +199,11 @@ export class AppUpdate {
   }
 }
 ```
+
+`OnMessageEvent` регистрирует обработчик callback-событий `message_event`.
+Объектное условие сопоставляется с `ctx.eventPayload`, а predicate получает
+payload первым аргументом. Если условие не подходит, обработчик передаёт
+управление следующему listener-у, поэтому guards и метод не вызываются.
 
 For a simple scene, let's create an `simple.scene.ts` file and do a few steps for it:
 

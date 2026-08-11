@@ -26,6 +26,7 @@ import { BaseExplorerService } from './base-explorer.service';
 import { VkParamsFactory } from '../factories/vk-params-factory';
 import { VkontextType } from '../execution-context';
 import { VkManagersOptions, VkModuleOptions } from '../interfaces';
+import { matchMessageEventPayload } from '../utils';
 
 @Injectable()
 export class ListenersExplorerService extends BaseExplorerService implements OnModuleInit {
@@ -228,6 +229,16 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
             // @ts-ignore
             this.hearManagerProvider.hear(event, ...[...args, getHandler()]);
           }
+          break;
+        }
+        case 'message_event': {
+          updates.on('message_event', async (ctx, next) => {
+            if (!matchMessageEventPayload(ctx.eventPayload, event, ctx)) {
+              return next();
+            }
+
+            return getHandler()(ctx, next);
+          });
           break;
         }
         // TODO: remake it (support hearManager, etc)

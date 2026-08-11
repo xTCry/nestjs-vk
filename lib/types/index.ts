@@ -1,6 +1,6 @@
 // import { Composer, Middleware } from 'middleware-io';
 
-export type HandlerType = 'vk_updates' | 'hears';
+export type HandlerType = 'vk_updates' | 'hears' | 'message_event';
 
 // export type Filter<T extends any[], F> = T extends []
 //   ? []
