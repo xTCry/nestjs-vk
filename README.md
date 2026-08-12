@@ -4,23 +4,28 @@
 [![NPM](https://img.shields.io/npm/dt/nestjs-vk.svg?style=flat-square)](https://www.npmjs.com/package/nestjs-vk)
 [![GitHub last commit](https://img.shields.io/github/last-commit/xtcry/nestjs-vk)](https://github.com/xtcry/nestjs-vk)
 
+[English documentation](./README.en.md)
+
 <img src="https://nestjs.com/img/logo-small.svg" title="NestJS logotype" align="right" width="95" height="148">
 
-**NestJS VK** – powerful solution for creating VK bots.
+**NestJS VK** — модуль для создания VK-ботов на NestJS.
 
-This package uses the best of the NodeJS world under the hood. [VK-IO](https://github.com/negezor/vk-io) is a powerful Node.js module that allows you to easily interact with the VK API and for creating bots, and [NestJS](https://github.com/nestjs) is a progressive framework for creating well-architectured applications.
+Пакет использует [VK-IO](https://github.com/negezor/vk-io) для работы с VK API
+и [NestJS](https://github.com/nestjs) для интеграции бота в архитектуру
+приложения.
 
-This module provides a quick and easy way to interact with the VK API and create VK bots and deep integration with your NestJS application.
+Модуль помогает подключить VK API, обработчики событий, middleware, guards,
+interceptors, filters, pipes, hears-обработчики и scenes в NestJS-приложении.
 
-**Features**
+**Возможности**
 
-- Simple. Easy to use.
-- Ability to create custom decorators.
-- Scenes support.
-- Ability to run multiple bots simultaneously.
-- Full support of NestJS guards, interceptors, filters and pipes!
+- Простое подключение VK-бота в NestJS.
+- Поддержка собственных декораторов.
+- Поддержка scenes.
+- Запуск нескольких ботов одновременно.
+- Поддержка NestJS guards, interceptors, filters и pipes.
 
-## Installation
+## Установка
 
 #### NPM
 
@@ -34,9 +39,9 @@ $ npm i nestjs-vk vk-io
 $ yarn add nestjs-vk vk-io
 ```
 
-## Usage
+## Использование
 
-Once the installation process is complete, we can import the `VkModule` into the root `AppModule`:
+После установки импортируйте `VkModule` в корневой `AppModule`:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -47,8 +52,8 @@ import { SimpleScene } from './scene/simple.scene';
 
 @Module({
   imports: [
-    // Optional. Use it only when you need to disable managers,
-    // provide custom manager instances or control middleware order manually.
+    // Необязательно. Используйте только если нужно отключить managers,
+    // передать свои экземпляры managers или вручную управлять порядком middleware.
     VkModule.forManagers({
       useSessionManager: false,
       useSceneManager: false,
@@ -82,18 +87,18 @@ import { SimpleScene } from './scene/simple.scene';
 export class AppModule {}
 ```
 
-`VkModule.forManagers()` is not required for the default setup. Without it,
-`nestjs-vk` creates and registers `SessionManager`, `SceneManager` and
-`HearManager` automatically.
+`VkModule.forManagers()` не обязателен для стандартного запуска. Без него
+`nestjs-vk` автоматически создаёт и регистрирует `SessionManager`,
+`SceneManager` и `HearManager`.
 
-Use `VkModule.forManagers()` only when you need to:
+Используйте `VkModule.forManagers()` только если нужно:
 
-- disable one of the default managers;
-- pass your own manager instance;
-- move manager middleware into `middlewaresBefore` / `middlewaresAfter`;
-- share the same explicitly configured managers through DI.
+- отключить один из default managers;
+- передать собственный экземпляр manager;
+- перенести manager middleware в `middlewaresBefore` / `middlewaresAfter`;
+- переиспользовать явно настроенные managers через DI.
 
-Main middleware `main.middleware.ts`:
+Основной middleware `main.middleware.ts`:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -138,7 +143,7 @@ export class MainMiddleware {
 }
 ```
 
-Manager providers can also be injected in constructors:
+Manager providers также можно инжектить в constructor:
 
 ```typescript
 import {
@@ -163,7 +168,7 @@ export class AppUpdate {
 }
 ```
 
-Then create `app.update.ts` file and add some decorators for handling VK bot API updates:
+Создайте файл `app.update.ts` и добавьте обработчики событий VK Bot API:
 
 ```typescript
 import {
@@ -201,17 +206,17 @@ export class AppUpdate {
 
   @Hears(/^\/?(start|старт)$/i)
   async onStartCommand(@Ctx() ctx: MessageContext) {
-    await ctx.reply('Welcome');
+    await ctx.reply('Добро пожаловать');
   }
 
   @Hears('hi')
   async hearsHi(@Ctx() ctx: MessageContext) {
-    return 'Hey there';
+    return 'Привет';
   }
 
   @OnMessageEvent({ broadcastAction: 'queue' })
   async onQueueAction(@Ctx() ctx: MessageEventContext) {
-    await ctx.answer({ type: 'show_snackbar', text: 'Queue opened' });
+    await ctx.answer({ type: 'show_snackbar', text: 'Очередь открыта' });
   }
 
   @OnMessageEvent(
@@ -220,7 +225,7 @@ export class AppUpdate {
       Boolean(payload?.scheduleNotifAction),
   )
   async onScheduleNotification(@Ctx() ctx: MessageEventContext) {
-    await ctx.answer({ type: 'show_snackbar', text: 'Notifications opened' });
+    await ctx.answer({ type: 'show_snackbar', text: 'Уведомления открыты' });
   }
 
   @Hears(/scene( ?(?<state>[0-9]+))?$/i)
@@ -237,7 +242,7 @@ export class AppUpdate {
       group_id: String(this.groupId),
       user_id: ctx.senderId,
     });
-    return isSib ? 'So good!' : 'No sub';
+    return isSib ? 'Отлично!' : 'Подписка не найдена';
   }
 
   @HearFallback()
@@ -249,7 +254,7 @@ export class AppUpdate {
       return;
     }
 
-    return 'What?..';
+    return 'Что?..';
   }
 }
 ```
@@ -259,7 +264,7 @@ export class AppUpdate {
 payload первым аргументом. Если условие не подходит, обработчик передаёт
 управление следующему listener-у, поэтому guards и метод не вызываются.
 
-For a simple scene, let's create an `simple.scene.ts` file and do a few steps for it:
+Для простой scene создайте файл `simple.scene.ts` и добавьте несколько шагов:
 
 ```typescript
 import { AddStep, Ctx, Scene, SceneEnter, SceneLeave } from 'nestjs-vk';
@@ -274,14 +279,14 @@ export class SimpleScene {
   async onSceneEnter(@Ctx() ctx: IStepContext) {
     const { stateNumber } = ctx.scene.state;
     await ctx.reply(
-      `Hello! I am a simple scene. Your state number is ${stateNumber}.\n` +
-        ` You can send me a number and I will multiply it by 2.`,
+      `Привет! Это простая scene. Твой state number: ${stateNumber}.\n` +
+        ` Пришли мне число, и я умножу его на 2.`,
     );
   }
 
   @SceneLeave()
   async onSceneLeave(@Ctx() ctx: IStepContext) {
-    await ctx.reply('Bye!');
+    await ctx.reply('Пока!');
   }
 
   // @Hears('exit')
@@ -298,16 +303,16 @@ export class SimpleScene {
     }
 
     if (ctx.scene.step.firstTime && number === null) {
-      await ctx.reply('Please send me a number.');
+      await ctx.reply('Пришли мне число.');
       return;
     }
 
     if (isNaN(number)) {
-      await ctx.reply('Wrong. Please send me a number.');
+      await ctx.reply('Ошибка. Пришли мне число.');
       return;
     }
 
-    await ctx.reply(`Your number multiplied by 2 is ${number * 2}.`);
+    await ctx.reply(`Твоё число, умноженное на 2: ${number * 2}.`);
 
     if (number > 20 && number % 2 === 0) {
       await ctx.scene.leave();
