@@ -1,11 +1,23 @@
+import {
+  DynamicModule,
+  Global,
+  Inject,
+  Module,
+  OnApplicationShutdown,
+  Provider,
+  Type,
+} from '@nestjs/common';
 import { DiscoveryModule, ModuleRef } from '@nestjs/core';
-import { DynamicModule, Global, Inject, Module, OnApplicationShutdown, Provider, Type } from '@nestjs/common';
 import { VK } from 'vk-io';
 
-import { VkModuleAsyncOptions, VkModuleOptions, VkOptionsFactory } from './interfaces';
-import { VK_API_NAME, VK_MODULE_OPTIONS } from './vk.constants';
+import {
+  VkModuleAsyncOptions,
+  VkModuleOptions,
+  VkOptionsFactory,
+} from './interfaces';
 import { ListenersExplorerService, MetadataAccessorService } from './services';
 import { createVkApiFactory, getVkApiToken } from './utils';
+import { VK_API_NAME, VK_MODULE_OPTIONS } from './vk.constants';
 
 @Global()
 @Module({
@@ -57,7 +69,8 @@ export class VkCoreModule implements OnApplicationShutdown {
 
     const vkApiProvider: Provider = {
       provide: vkApiName,
-      useFactory: async (options: VkModuleOptions) => await createVkApiFactory(options),
+      useFactory: async (options: VkModuleOptions) =>
+        await createVkApiFactory(options),
       inject: [VK_MODULE_OPTIONS],
     };
 
@@ -77,11 +90,13 @@ export class VkCoreModule implements OnApplicationShutdown {
     vk && (await vk.updates.stop());
   }
 
-  private static createAsyncProviders(options: VkModuleAsyncOptions): Provider[] {
+  private static createAsyncProviders(
+    options: VkModuleAsyncOptions,
+  ): Provider[] {
     if (options.useExisting || options.useFactory) {
       return [this.createAsyncOptionsProvider(options)];
     }
-    const useClass = options.useClass as Type<VkOptionsFactory>;
+    const useClass = options.useClass;
     return [
       this.createAsyncOptionsProvider(options),
       {
@@ -91,7 +106,9 @@ export class VkCoreModule implements OnApplicationShutdown {
     ];
   }
 
-  private static createAsyncOptionsProvider(options: VkModuleAsyncOptions): Provider {
+  private static createAsyncOptionsProvider(
+    options: VkModuleAsyncOptions,
+  ): Provider {
     if (options.useFactory) {
       return {
         provide: VK_MODULE_OPTIONS,
@@ -101,10 +118,11 @@ export class VkCoreModule implements OnApplicationShutdown {
     }
 
     // `as Type<VkOptionsFactory>` is a workaround for microsoft/TypeScript#31603
-    const inject = [(options.useClass || options.useExisting) as Type<VkOptionsFactory>];
+    const inject = [options.useClass || options.useExisting];
     return {
       provide: VK_MODULE_OPTIONS,
-      useFactory: async (optionsFactory: VkOptionsFactory) => await optionsFactory.createVkOptions(),
+      useFactory: async (optionsFactory: VkOptionsFactory) =>
+        await optionsFactory.createVkOptions(),
       inject,
     };
   }

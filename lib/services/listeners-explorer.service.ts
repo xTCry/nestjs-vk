@@ -1,35 +1,38 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ModuleRef, ModulesContainer } from '@nestjs/core';
-import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { MetadataScanner } from '@nestjs/core/metadata-scanner';
-import { Module } from '@nestjs/core/injector/module';
-import { ParamMetadata } from '@nestjs/core/helpers/interfaces';
 import { ExternalContextCreator } from '@nestjs/core/helpers/external-context-creator';
-import { VK, Context, Updates, MessageContext, Composer } from 'vk-io';
-import { AllowArray } from 'vk-io/lib/types';
+import { ParamMetadata } from '@nestjs/core/helpers/interfaces';
+import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
+import { Module } from '@nestjs/core/injector/module';
+import { MetadataScanner } from '@nestjs/core/metadata-scanner';
 import { NextMiddleware } from 'middleware-io';
-import { SessionManager } from '@vk-io/session';
-import { SceneManager, StepScene } from '@vk-io/scenes';
+import { Composer, Context, MessageContext, Updates, VK } from 'vk-io';
+import { AllowArray } from 'vk-io/lib/types';
 import { HearManager } from '@vk-io/hear';
+import { SceneManager, StepScene } from '@vk-io/scenes';
+import { SessionManager } from '@vk-io/session';
 
-import { MetadataAccessorService } from './metadata-accessor.service';
+import { VkontextType } from '../execution-context';
+import { VkParamsFactory } from '../factories/vk-params-factory';
+import { VkManagersOptions, VkModuleOptions } from '../interfaces';
+import { matchMessageEventPayload } from '../utils';
 import {
   PARAM_ARGS_METADATA,
   VK_API_NAME,
-  VK_MODULE_OPTIONS,
-  VK_SESSION_MANAGER,
-  VK_SCENE_MANAGER,
   VK_HEAR_MANAGER,
   VK_MANAGERS_OPTIONS,
+  VK_MODULE_OPTIONS,
+  VK_SCENE_MANAGER,
+  VK_SESSION_MANAGER,
 } from '../vk.constants';
 import { BaseExplorerService } from './base-explorer.service';
-import { VkParamsFactory } from '../factories/vk-params-factory';
-import { VkontextType } from '../execution-context';
-import { VkManagersOptions, VkModuleOptions } from '../interfaces';
-import { matchMessageEventPayload } from '../utils';
+import { MetadataAccessorService } from './metadata-accessor.service';
 
 @Injectable()
-export class ListenersExplorerService extends BaseExplorerService implements OnModuleInit {
+export class ListenersExplorerService
+  extends BaseExplorerService
+  implements OnModuleInit
+{
   private readonly vkParamsFactory = new VkParamsFactory();
   private vk: VK;
 
@@ -92,15 +95,22 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
   }
 
   explore(): void {
-    const modules = this.getModules(this.modulesContainer, this.vkOptions.include || []);
+    const modules = this.getModules(
+      this.modulesContainer,
+      this.vkOptions.include || [],
+    );
 
     this.registerUpdates(modules);
     this.registerScenes(modules);
   }
 
   private registerUpdates(modules: Module[]): void {
-    const updates = this.flatMap<InstanceWrapper>(modules, (instance) => this.filterUpdates(instance));
-    updates.forEach((wrapper) => this.registerListeners(this.vk.updates, wrapper));
+    const updates = this.flatMap<InstanceWrapper>(modules, (instance) =>
+      this.filterUpdates(instance),
+    );
+    updates.forEach((wrapper) =>
+      this.registerListeners(this.vk.updates, wrapper),
+    );
   }
 
   private filterUpdates(wrapper: InstanceWrapper): InstanceWrapper<unknown> {
@@ -114,9 +124,13 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
   }
 
   private registerScenes(modules: Module[]): void {
-    const scenes = this.flatMap<InstanceWrapper>(modules, (wrapper) => this.filterScenes(wrapper));
+    const scenes = this.flatMap<InstanceWrapper>(modules, (wrapper) =>
+      this.filterScenes(wrapper),
+    );
     scenes.forEach((wrapper) => {
-      const sceneId = this.metadataAccessor.getSceneMetadata(wrapper.instance.constructor);
+      const sceneId = this.metadataAccessor.getSceneMetadata(
+        wrapper.instance.constructor,
+      );
 
       this.registerSceneSteps(sceneId, wrapper);
     });
@@ -132,7 +146,10 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     return wrapper;
   }
 
-  private registerListeners(updates: Updates, wrapper: InstanceWrapper<unknown>): void {
+  private registerListeners(
+    updates: Updates,
+    wrapper: InstanceWrapper<unknown>,
+  ): void {
     const { instance } = wrapper;
     const prototype = Object.getPrototypeOf(instance);
     this.metadataScanner.scanFromPrototype(instance, prototype, (name) =>
@@ -140,7 +157,10 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     );
   }
 
-  private registerSceneSteps(sceneId: string, wrapper: InstanceWrapper<any>): void {
+  private registerSceneSteps(
+    sceneId: string,
+    wrapper: InstanceWrapper<any>,
+  ): void {
     const { instance } = wrapper;
     const prototype = Object.getPrototypeOf(instance);
 
@@ -150,20 +170,32 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     let leaveHandler;
 
     let index = 0;
-    this.metadataScanner.scanFromPrototype(instance, prototype, (methodName) => {
-      const methodRef = prototype[methodName];
-      const action = this.metadataAccessor.getSceneActionMetadata(methodRef);
-      if (action) {
-        if (action === 'enter') {
-          enterHandler = this.createContextCallback(instance, prototype, methodName);
-        } else {
-          leaveHandler = this.createContextCallback(instance, prototype, methodName);
+    this.metadataScanner.scanFromPrototype(
+      instance,
+      prototype,
+      (methodName) => {
+        const methodRef = prototype[methodName];
+        const action = this.metadataAccessor.getSceneActionMetadata(methodRef);
+        if (action) {
+          if (action === 'enter') {
+            enterHandler = this.createContextCallback(
+              instance,
+              prototype,
+              methodName,
+            );
+          } else {
+            leaveHandler = this.createContextCallback(
+              instance,
+              prototype,
+              methodName,
+            );
+          }
+          return;
         }
-        return;
-      }
-      const step = this.metadataAccessor.getSceneStepMetadata(methodRef);
-      steps.push({ step: step ?? index++, methodName });
-    });
+        const step = this.metadataAccessor.getSceneStepMetadata(methodRef);
+        steps.push({ step: step ?? index++, methodName });
+      },
+    );
 
     const scene = new StepScene(sceneId, {
       enterHandler,
@@ -171,21 +203,34 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
       steps: steps
         .sort((a, b) => a.step - b.step)
         .map((e) => {
-          const listenerCallbackFn = this.createContextCallback(instance, prototype, e.methodName);
+          const listenerCallbackFn = this.createContextCallback(
+            instance,
+            prototype,
+            e.methodName,
+          );
           return listenerCallbackFn;
         }),
     });
     this.sceneManager.addScenes([scene]);
   }
 
-  private registerIfListener(updates: Updates, instance: any, prototype: any, methodName: string): void {
+  private registerIfListener(
+    updates: Updates,
+    instance: any,
+    prototype: any,
+    methodName: string,
+  ): void {
     const methodRef = prototype[methodName];
     const metadata = this.metadataAccessor.getListenerMetadata(methodRef);
     if (!metadata || metadata.length < 1) {
       return undefined;
     }
 
-    const listenerCallbackFn = this.createContextCallback(instance, prototype, methodName);
+    const listenerCallbackFn = this.createContextCallback(
+      instance,
+      prototype,
+      methodName,
+    );
 
     for (const { handlerType, method, event, args } of metadata) {
       const getHandler =
@@ -246,9 +291,16 @@ export class ListenersExplorerService extends BaseExplorerService implements OnM
     }
   }
 
-  createContextCallback<T extends Record<string, unknown>>(instance: T, prototype: unknown, methodName: string) {
+  createContextCallback<T extends Record<string, unknown>>(
+    instance: T,
+    prototype: unknown,
+    methodName: string,
+  ) {
     const paramsFactory = this.vkParamsFactory;
-    const resolverCallback = this.externalContextCreator.create<Record<number, ParamMetadata>, VkontextType>(
+    const resolverCallback = this.externalContextCreator.create<
+      Record<number, ParamMetadata>,
+      VkontextType
+    >(
       instance,
       prototype[methodName],
       methodName,

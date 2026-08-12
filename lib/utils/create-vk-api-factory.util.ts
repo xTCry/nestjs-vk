@@ -1,7 +1,10 @@
 import { VK } from 'vk-io';
+
 import { VkModuleOptions } from '../interfaces';
 
-export async function createVkApiFactory(options: VkModuleOptions): Promise<VK> {
+export async function createVkApiFactory(
+  options: VkModuleOptions,
+): Promise<VK> {
   const vk = new VK({ token: options.token, ...options.options });
 
   if (options.launchOptions !== false) {

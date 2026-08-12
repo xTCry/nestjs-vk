@@ -2,9 +2,9 @@ import { ModuleMetadata, Type } from '@nestjs/common/interfaces';
 import { Middleware } from 'middleware-io';
 import { IWebhookTransportStartOptions, MessageContext } from 'vk-io';
 import { VKOptions } from 'vk-io/lib/types';
-import { SessionManager } from '@vk-io/session';
-import { SceneManager } from '@vk-io/scenes';
 import { HearManager } from '@vk-io/hear';
+import { SceneManager } from '@vk-io/scenes';
+import { SessionManager } from '@vk-io/session';
 
 export interface VkManagersOptions {
   useSessionManager?: boolean | SessionManager;

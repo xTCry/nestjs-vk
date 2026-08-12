@@ -1,6 +1,9 @@
 import type { MessageEventContext } from 'vk-io';
 
-import type { MessageEventCondition, MessageEventPayload } from '../decorators/listeners/on-message-event.decorator';
+import type {
+  MessageEventCondition,
+  MessageEventPayload,
+} from '../decorators/listeners/on-message-event.decorator';
 
 /** Проверяет, что payload callback-события VK соответствует условию listener-а. */
 export function matchMessageEventPayload(
@@ -20,7 +23,9 @@ export function matchMessageEventPayload(
     return false;
   }
 
-  return Object.entries(condition).every(([key, value]) => matchValue(payload[key], value));
+  return Object.entries(condition).every(([key, value]) =>
+    matchValue(payload[key], value),
+  );
 }
 
 /** Сужает неизвестное значение до объекта, доступного для проверки полей. */
@@ -40,6 +45,8 @@ function matchValue(value: unknown, condition: unknown): boolean {
 
   return (
     isRecord(value) &&
-    Object.entries(condition).every(([key, nestedCondition]) => matchValue(value[key], nestedCondition))
+    Object.entries(condition).every(([key, nestedCondition]) =>
+      matchValue(value[key], nestedCondition),
+    )
   );
 }

@@ -1,5 +1,6 @@
 import { assignMetadata, PipeTransform, Type } from '@nestjs/common';
 import { isNil, isString } from '@nestjs/common/utils/shared.utils';
+
 import { VkParamtype } from '../enums/vk-paramtype.enum';
 import { PARAM_ARGS_METADATA } from '../vk.constants';
 
@@ -8,7 +9,8 @@ export type ParamData = object | string | number;
 export const createVkParamDecorator = (paramtype: VkParamtype) => {
   return (data?: ParamData): ParameterDecorator =>
     (target, key, index) => {
-      const args = Reflect.getMetadata(PARAM_ARGS_METADATA, target.constructor, key) || {};
+      const args =
+        Reflect.getMetadata(PARAM_ARGS_METADATA, target.constructor, key) || {};
       Reflect.defineMetadata(
         PARAM_ARGS_METADATA,
         assignMetadata(args, paramtype, index, data),
@@ -20,7 +22,10 @@ export const createVkParamDecorator = (paramtype: VkParamtype) => {
 
 export const createVkPipesParamDecorator =
   (paramtype: VkParamtype) =>
-  (data?: any, ...pipes: (Type<PipeTransform> | PipeTransform)[]): ParameterDecorator =>
+  (
+    data?: any,
+    ...pipes: (Type<PipeTransform> | PipeTransform)[]
+  ): ParameterDecorator =>
   (target, key, index) => {
     addPipesMetadata(paramtype, data, pipes, target, key, index);
   };
@@ -33,7 +38,8 @@ export const addPipesMetadata = (
   key: string | symbol,
   index: number,
 ) => {
-  const args = Reflect.getMetadata(PARAM_ARGS_METADATA, target.constructor, key) || {};
+  const args =
+    Reflect.getMetadata(PARAM_ARGS_METADATA, target.constructor, key) || {};
   const hasParamData = isNil(data) || isString(data);
   const paramData = hasParamData ? data : undefined;
   const paramPipes = hasParamData ? pipes : [data, ...pipes];

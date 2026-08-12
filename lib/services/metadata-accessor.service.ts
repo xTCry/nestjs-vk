@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import {
-  VK_SCENE_METADATA,
-  VK_LISTENERS_METADATA,
-  VK_UPDATE_METADATA,
-  VK_SCENE_STEP_METADATA,
-  VK_SCENE_ACTION_METADATA,
-} from '../vk.constants';
+
 import { ListenerMetadata } from '../interfaces';
+import {
+  VK_LISTENERS_METADATA,
+  VK_SCENE_ACTION_METADATA,
+  VK_SCENE_METADATA,
+  VK_SCENE_STEP_METADATA,
+  VK_UPDATE_METADATA,
+} from '../vk.constants';
 
 @Injectable()
 export class MetadataAccessorService {

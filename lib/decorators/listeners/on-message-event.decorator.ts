@@ -14,4 +14,5 @@ export type MessageEventCondition =
   | ((payload: MessageEventPayload, context: MessageEventContext) => boolean);
 
 /** Обрабатывает `message_event` и, при наличии условия, фильтрует event payload. */
-export const OnMessageEvent = createListenerDecorator<MessageEventCondition>('message_event');
+export const OnMessageEvent =
+  createListenerDecorator<MessageEventCondition>('message_event');

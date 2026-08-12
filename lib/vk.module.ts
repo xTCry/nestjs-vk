@@ -1,8 +1,17 @@
-import { Module, DynamicModule } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
+
+import {
+  VkManagersOptions,
+  VkModuleAsyncOptions,
+  VkModuleOptions,
+} from './interfaces';
+import {
+  hearManagerProvider,
+  sceneManagerProvider,
+  sessionManagerProvider,
+} from './providers';
 import { VkCoreModule } from './vk-core.module';
-import { VkModuleOptions, VkModuleAsyncOptions, VkManagersOptions } from './interfaces';
 import { VK_MANAGERS_OPTIONS } from './vk.constants';
-import { sessionManagerProvider, sceneManagerProvider, hearManagerProvider } from './providers';
 
 @Module({})
 export class VkModule {
