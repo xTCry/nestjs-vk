@@ -15,9 +15,20 @@ import {
   VkModuleOptions,
   VkOptionsFactory,
 } from './interfaces';
+import {
+  hearManagerProvider,
+  sceneManagerProvider,
+  sessionManagerProvider,
+} from './providers';
 import { ListenersExplorerService, MetadataAccessorService } from './services';
 import { createVkApiFactory, getVkApiToken } from './utils';
 import { VK_API_NAME, VK_MODULE_OPTIONS } from './vk.constants';
+
+const defaultManagerProviders: Provider[] = [
+  hearManagerProvider,
+  sessionManagerProvider,
+  sceneManagerProvider,
+];
 
 @Global()
 @Module({
@@ -44,7 +55,11 @@ export class VkCoreModule implements OnApplicationShutdown {
       useFactory: async () => await createVkApiFactory(options),
     };
 
-    const providers = [vkApiNameProvider, vkApiProvider];
+    const providers = [
+      vkApiNameProvider,
+      vkApiProvider,
+      ...defaultManagerProviders,
+    ];
 
     return {
       module: VkCoreModule,
@@ -75,7 +90,11 @@ export class VkCoreModule implements OnApplicationShutdown {
     };
 
     const asyncProviders = this.createAsyncProviders(options);
-    const providers = [vkApiNameProvider, vkApiProvider];
+    const providers = [
+      vkApiNameProvider,
+      vkApiProvider,
+      ...defaultManagerProviders,
+    ];
 
     return {
       module: VkCoreModule,

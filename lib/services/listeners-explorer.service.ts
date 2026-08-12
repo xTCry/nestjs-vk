@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, Optional } from '@nestjs/common';
 import { ModuleRef, ModulesContainer } from '@nestjs/core';
 import { ExternalContextCreator } from '@nestjs/core/helpers/external-context-creator';
 import { ParamMetadata } from '@nestjs/core/helpers/interfaces';
@@ -37,14 +37,18 @@ export class ListenersExplorerService
   private vk: VK;
 
   constructor(
+    @Optional()
     @Inject(VK_HEAR_MANAGER)
     private readonly hearManagerProvider: HearManager<MessageContext>,
+    @Optional()
     @Inject(VK_SESSION_MANAGER)
     private readonly sessionManagerProvider: SessionManager,
+    @Optional()
     @Inject(VK_SCENE_MANAGER)
     private readonly sceneManager: SceneManager,
     @Inject(VK_MODULE_OPTIONS)
     private readonly vkOptions: VkModuleOptions,
+    @Optional()
     @Inject(VK_MANAGERS_OPTIONS)
     private readonly vkManagersOptions: VkManagersOptions,
     @Inject(VK_API_NAME)
@@ -57,6 +61,11 @@ export class ListenersExplorerService
     private readonly externalContextCreator: ExternalContextCreator,
   ) {
     super();
+
+    this.vkManagersOptions ??= {};
+    this.hearManagerProvider ??= new HearManager();
+    this.sessionManagerProvider ??= new SessionManager();
+    this.sceneManager ??= new SceneManager();
   }
 
   onModuleInit(): void {

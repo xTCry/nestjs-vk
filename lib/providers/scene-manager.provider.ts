@@ -6,9 +6,9 @@ import { VK_MANAGERS_OPTIONS, VK_SCENE_MANAGER } from '../vk.constants';
 
 export const sceneManagerProvider: Provider = {
   provide: VK_SCENE_MANAGER,
-  useFactory: (options: VkManagersOptions) =>
-    options.useSceneManager instanceof SceneManager
+  useFactory: (options?: VkManagersOptions) =>
+    options?.useSceneManager instanceof SceneManager
       ? options.useSceneManager
       : new SceneManager(),
-  inject: [VK_MANAGERS_OPTIONS],
+  inject: [{ token: VK_MANAGERS_OPTIONS, optional: true }],
 };

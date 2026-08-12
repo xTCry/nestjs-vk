@@ -6,9 +6,9 @@ import { VK_MANAGERS_OPTIONS, VK_SESSION_MANAGER } from '../vk.constants';
 
 export const sessionManagerProvider: Provider = {
   provide: VK_SESSION_MANAGER,
-  useFactory: (options: VkManagersOptions) =>
-    options.useSessionManager instanceof SessionManager
+  useFactory: (options?: VkManagersOptions) =>
+    options?.useSessionManager instanceof SessionManager
       ? options.useSessionManager
       : new SessionManager(),
-  inject: [VK_MANAGERS_OPTIONS],
+  inject: [{ token: VK_MANAGERS_OPTIONS, optional: true }],
 };
