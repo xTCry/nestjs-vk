@@ -1,6 +1,31 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+## [4.7.0](https://github.com/xTCry/nestjs-vk/compare/v4.6.1...v4.7.0) (2026-08-12)
+
+### 🧹 Chore
+
+* add commit hooks and package files ([c3a479f](https://github.com/xTCry/nestjs-vk/commit/c3a479fb509fdb1a15374543944ec59db55d6015))
+* add lint and test tooling ([74aa8ab](https://github.com/xTCry/nestjs-vk/commit/74aa8ab841ffe43b1f2080c0744a3454cfe6a368))
+* **release:** migrate to release-it ([890cc68](https://github.com/xTCry/nestjs-vk/commit/890cc6868050ba754b7e55840798499354e93c3e))
+* **samples:** update dependencies and formatting ([2bdab01](https://github.com/xTCry/nestjs-vk/commit/2bdab012d4f0fd757684e61b427158f55ff07843))
+
+### 🚀 Features
+
+* add license ([26908cb](https://github.com/xTCry/nestjs-vk/commit/26908cbe0cb7f40bb528bbb88fcedd5510a34c47))
+* **decorators:** add conditional message event listener ([3f0cd48](https://github.com/xTCry/nestjs-vk/commit/3f0cd48b4ddd1038d9bf987eddb98b38a5557cfb))
+* **module:** add default manager inject decorators ([1d1acdc](https://github.com/xTCry/nestjs-vk/commit/1d1acdc5ab4975b549468ebed6f5e2fb6ca7a0b9))
+
+### 🐛 Bug Fixes
+
+* **module:** make managers optional for root registration ([07bc5ef](https://github.com/xTCry/nestjs-vk/commit/07bc5ef32983979df21f51f822d9ec57d1247380))
+
+### 📖 Documentation
+
+* **readme:** add default ru doc ([19362a0](https://github.com/xTCry/nestjs-vk/commit/19362a00a8069e46ecd6a05570d07684a1cdf655))
+
+### ☯ Styling
+
+* **prettier:** format lib source files ([dc3dd4d](https://github.com/xTCry/nestjs-vk/commit/dc3dd4d375b1ce9413ec74cc2998a5db784fcb9c))
 
 ### [4.6.1](https://github.com/xTCry/nestjs-vk/compare/v4.6.0...v4.6.1) (2025-12-17)
 
