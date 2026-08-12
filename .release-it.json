@@ -1,0 +1,97 @@
+{
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "requireCleanWorkingDir": false
+  },
+  "github": {
+    "release": true,
+    "releaseName": "v${version}",
+    "web": true
+  },
+  "npm": {
+    "publish": false
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "infile": "CHANGELOG.md",
+      "header": "# Changelog",
+      "whatBump": false,
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          {
+            "type": "chore",
+            "section": "🧹 Chore",
+            "effect": "changelog"
+          },
+          {
+            "type": "types",
+            "section": "💙 Types",
+            "effect": "changelog"
+          },
+          {
+            "type": "revert",
+            "section": "♻ Reverts",
+            "effect": "changelog"
+          },
+          {
+            "type": "feat",
+            "section": "🚀 Features",
+            "effect": "bump"
+          },
+          {
+            "type": "fix",
+            "section": "🐛 Bug Fixes",
+            "effect": "bump"
+          },
+          {
+            "type": "improvement",
+            "section": "🌟 Feature Improvements",
+            "effect": "bump"
+          },
+          {
+            "type": "docs",
+            "section": "📖 Documentation",
+            "effect": "changelog"
+          },
+          {
+            "type": "style",
+            "section": "☯ Styling",
+            "effect": "changelog"
+          },
+          {
+            "type": "refactor",
+            "section": "🔧 Code Refactoring",
+            "effect": "changelog"
+          },
+          {
+            "type": "perf",
+            "section": "💪 Performance Improvements",
+            "effect": "bump"
+          },
+          {
+            "type": "test",
+            "section": "🐱‍💻 Tests",
+            "effect": "changelog"
+          },
+          {
+            "type": "build",
+            "section": "🔨 Build System",
+            "effect": "changelog"
+          },
+          {
+            "type": "ci",
+            "section": "🛠️ CI",
+            "effect": "changelog"
+          },
+          {
+            "type": "sample",
+            "section": "🌟 Samples",
+            "effect": "changelog"
+          }
+        ]
+      }
+    }
+  }
+}

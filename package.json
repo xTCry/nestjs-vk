@@ -27,26 +27,26 @@
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
     "prepublishOnly": "npm run build",
     "publish:npm": "npm publish --access public",
-    "release": "standard-version",
-    "release:minor": "standard-version --release-as minor",
-    "release:major": "standard-version --release-as major",
-    "release:patch": "standard-version --release-as patch",
-    "release:rc": "standard-version --prerelease rc"
+    "release": "release-it",
+    "release:minor": "release-it minor",
+    "release:major": "release-it major",
+    "release:patch": "release-it patch",
+    "release:rc": "release-it --preRelease=rc"
   },
   "dependencies": {
     "@vk-io/hear": "^1.1.0",
     "@vk-io/scenes": "^1.2.0",
     "@vk-io/session": "^2.2.0",
     "lodash": "^4.17.21",
-    "rimraf": "^6.1.2",
-    "standard-version": "^9.5.0"
+    "rimraf": "^6.1.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "@nestjs/common": "^11.1.0",
     "@nestjs/core": "^11.1.0",
     "@nestjs/testing": "^11.1.29",
+    "@release-it/conventional-changelog": "^12.0.0",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "@types/jest": "^30.0.0",
     "@types/lodash": "4.17.21",
     "@types/node": "^24.13.3",
@@ -58,6 +58,7 @@
     "middleware-io": "^2.8.1",
     "prettier": "3.7.4",
     "reflect-metadata": "0.2.2",
+    "release-it": "^21.0.2",
     "rxjs": "^7.8.2",
     "ts-jest": "^29.4.12",
     "typescript": "5.9.3",
