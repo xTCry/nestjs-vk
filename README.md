@@ -47,6 +47,8 @@ import { SimpleScene } from './scene/simple.scene';
 
 @Module({
   imports: [
+    // Optional. Use it only when you need to disable managers,
+    // provide custom manager instances or control middleware order manually.
     VkModule.forManagers({
       useSessionManager: false,
       useSceneManager: false,
@@ -80,22 +82,35 @@ import { SimpleScene } from './scene/simple.scene';
 export class AppModule {}
 ```
 
+`VkModule.forManagers()` is not required for the default setup. Without it,
+`nestjs-vk` creates and registers `SessionManager`, `SceneManager` and
+`HearManager` automatically.
+
+Use `VkModule.forManagers()` only when you need to:
+
+- disable one of the default managers;
+- pass your own manager instance;
+- move manager middleware into `middlewaresBefore` / `middlewaresAfter`;
+- share the same explicitly configured managers through DI.
+
 Main middleware `main.middleware.ts`:
 
 ```typescript
-import { Inject, Injectable } from '@nestjs/common';
-import { VK_HEAR_MANAGER, VK_SCENE_MANAGER } from 'nestjs-vk';
-import { MessageContext, Context, Composer } from 'vk-io';
+import { Injectable } from '@nestjs/common';
+import { InjectVkHearManager, InjectVkSceneManager } from 'nestjs-vk';
+import { Composer, Context, MessageContext } from 'vk-io';
 import { HearManager } from '@vk-io/hear';
-import { SessionManager } from '@vk-io/session';
 import { SceneManager } from '@vk-io/scenes';
+import { SessionManager } from '@vk-io/session';
 
 @Injectable()
 export class MainMiddleware {
   private readonly sessionManager: SessionManager;
-  @Inject(VK_HEAR_MANAGER)
+
+  @InjectVkHearManager()
   private readonly hearManagerProvider: HearManager<MessageContext>;
-  @Inject(VK_SCENE_MANAGER)
+
+  @InjectVkSceneManager()
   private readonly sceneManager: SceneManager;
 
   constructor() {
@@ -123,10 +138,43 @@ export class MainMiddleware {
 }
 ```
 
+Manager providers can also be injected in constructors:
+
+```typescript
+import {
+  InjectVkHearManager,
+  InjectVkSceneManager,
+  InjectVkSessionManager,
+} from 'nestjs-vk';
+import { MessageContext } from 'vk-io';
+import { HearManager } from '@vk-io/hear';
+import { SceneManager } from '@vk-io/scenes';
+import { SessionManager } from '@vk-io/session';
+
+export class AppUpdate {
+  constructor(
+    @InjectVkHearManager()
+    private readonly hearManager: HearManager<MessageContext>,
+    @InjectVkSessionManager()
+    private readonly sessionManager: SessionManager,
+    @InjectVkSceneManager()
+    private readonly sceneManager: SceneManager,
+  ) {}
+}
+```
+
 Then create `app.update.ts` file and add some decorators for handling VK bot API updates:
 
 ```typescript
-import { InjectVkApi, Update, Ctx, Message, Hears, HearFallback, OnMessageEvent } from 'nestjs-vk';
+import {
+  Ctx,
+  HearFallback,
+  Hears,
+  InjectVkApi,
+  Message,
+  OnMessageEvent,
+  Update,
+} from 'nestjs-vk';
 import { MessageContext, MessageEventContext, VK } from 'vk-io';
 
 import { AppService } from './app.service';
@@ -166,14 +214,20 @@ export class AppUpdate {
     await ctx.answer({ type: 'show_snackbar', text: 'Queue opened' });
   }
 
-  @OnMessageEvent((payload) => payload?.phrase === 'schedule-notification' || Boolean(payload?.scheduleNotifAction))
+  @OnMessageEvent(
+    (payload) =>
+      payload?.phrase === 'schedule-notification' ||
+      Boolean(payload?.scheduleNotifAction),
+  )
   async onScheduleNotification(@Ctx() ctx: MessageEventContext) {
     await ctx.answer({ type: 'show_snackbar', text: 'Notifications opened' });
   }
 
   @Hears(/scene( ?(?<state>[0-9]+))?$/i)
   async hearsScene(@Ctx() ctx: MessageContext) {
-    const stateNumber = ((e) => (isNaN(Number(e)) ? null : Number(e)))(ctx.$match?.groups?.state);
+    const stateNumber = ((e) => (isNaN(Number(e)) ? null : Number(e)))(
+      ctx.$match?.groups?.state,
+    );
     ctx.scene.enter(SIMPLE_SCENE, { state: { stateNumber } });
   }
 
@@ -208,7 +262,7 @@ payload первым аргументом. Если условие не подх
 For a simple scene, let's create an `simple.scene.ts` file and do a few steps for it:
 
 ```typescript
-import { Scene, AddStep, Ctx, SceneEnter, SceneLeave } from 'nestjs-vk';
+import { AddStep, Ctx, Scene, SceneEnter, SceneLeave } from 'nestjs-vk';
 import { MessageContext } from 'vk-io';
 import { IStepContext } from '@vk-io/scenes';
 

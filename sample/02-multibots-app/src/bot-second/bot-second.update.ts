@@ -1,10 +1,10 @@
-import { Inject, UseFilters } from '@nestjs/common';
+import { UseFilters } from '@nestjs/common';
 import {
   Ctx,
   Hears,
+  InjectVkHearManager,
+  InjectVkSessionManager,
   Update,
-  VK_HEAR_MANAGER,
-  VK_SESSION_MANAGER,
 } from 'nestjs-vk';
 import { MessageContext } from 'vk-io';
 import { HearManager } from '@vk-io/hear';
@@ -16,9 +16,9 @@ import { VkExceptionFilter } from '../common';
 @UseFilters(VkExceptionFilter)
 export class BotSecondlUpdate {
   constructor(
-    @Inject(VK_HEAR_MANAGER)
+    @InjectVkHearManager() // @Inject(VK_HEAR_MANAGER)
     private readonly hearManagerProvider: HearManager<MessageContext>,
-    @Inject(VK_SESSION_MANAGER)
+    @InjectVkSessionManager() // @Inject(VK_SESSION_MANAGER)
     private readonly sessionManagerProvider: SessionManager,
   ) {
     this.hearManagerProvider.hear('wow', (ctx) => {

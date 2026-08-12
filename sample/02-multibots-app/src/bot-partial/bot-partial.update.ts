@@ -1,15 +1,15 @@
-import { Inject, UseFilters, UseGuards } from '@nestjs/common';
+import { UseFilters, UseGuards } from '@nestjs/common';
 import {
   Ctx,
   HearFallback,
   Hears,
   InjectVkApi,
+  InjectVkHearManager,
+  InjectVkSceneManager,
+  InjectVkSessionManager,
   Next,
   On,
   Update,
-  VK_HEAR_MANAGER,
-  VK_SCENE_MANAGER,
-  VK_SESSION_MANAGER,
 } from 'nestjs-vk';
 import { NextMiddleware } from 'middleware-io';
 import { getRandomId, MessageContext, VK } from 'vk-io';
@@ -30,11 +30,11 @@ export class BotPartialUpdate {
     private readonly firstBot: VK,
     @InjectVkApi('secondBot')
     private readonly secondBot: VK,
-    @Inject(VK_HEAR_MANAGER)
+    @InjectVkHearManager() // or @Inject(VK_HEAR_MANAGER)
     private readonly hearManagerProvider: HearManager<MessageContext>,
-    @Inject(VK_SESSION_MANAGER)
+    @InjectVkSessionManager() // or @Inject(VK_SESSION_MANAGER)
     private readonly sessionManagerProvider: SessionManager,
-    @Inject(VK_SCENE_MANAGER)
+    @InjectVkSceneManager() // or @Inject(VK_SCENE_MANAGER)
     private readonly sceneManager: SceneManager,
   ) {
     this.hearManagerProvider
