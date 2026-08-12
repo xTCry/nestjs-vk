@@ -13,4 +13,7 @@ npm-debug.log
 # source
 dist
 
+# tests
+coverage
+
 .env

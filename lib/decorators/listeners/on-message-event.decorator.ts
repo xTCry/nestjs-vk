@@ -2,11 +2,19 @@ import type { MessageEventContext } from 'vk-io';
 
 import { createListenerDecorator } from '../../utils';
 
-/** Условие, которому должен удовлетворять payload callback-события VK. */
-export type MessageEventPayload = Record<string, unknown>;
+/** Payload callback-события VK `message_event`. */
+export interface MessageEventPayload {
+  [key: string]: MessageEventPayloadValue;
+}
 
 /** Условие одного поля payload callback-события VK. */
-export type MessageEventPayloadValue = unknown | RegExp | MessageEventPayload;
+export type MessageEventPayloadValue =
+  | string
+  | number
+  | boolean
+  | null
+  | RegExp
+  | MessageEventPayload;
 
 /** Условие, которому должен удовлетворять payload callback-события VK. */
 export type MessageEventCondition =
