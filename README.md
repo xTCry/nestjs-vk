@@ -98,6 +98,18 @@ export class AppModule {}
 - перенести manager middleware в `middlewaresBefore` / `middlewaresAfter`;
 - переиспользовать явно настроенные managers через DI.
 
+Для нескольких ботов можно настроить managers конкретного бота через второй
+аргумент `vkName`:
+
+```typescript
+VkModule.forManagers(
+  {
+    useSceneManager: false,
+  },
+  'firstBot',
+);
+```
+
 Основной middleware `main.middleware.ts`:
 
 ```typescript
@@ -164,6 +176,20 @@ export class AppUpdate {
     private readonly sessionManager: SessionManager,
     @InjectVkSceneManager()
     private readonly sceneManager: SceneManager,
+  ) {}
+}
+```
+
+В multi-bot приложениях передавайте `vkName` в inject decorators, чтобы получить
+manager конкретного бота:
+
+```typescript
+export class AppUpdate {
+  constructor(
+    @InjectVkHearManager('firstBot')
+    private readonly firstBotHearManager: HearManager<MessageContext>,
+    @InjectVkHearManager('secondBot')
+    private readonly secondBotHearManager: HearManager<MessageContext>,
   ) {}
 }
 ```

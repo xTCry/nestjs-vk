@@ -6,10 +6,17 @@ import {
   VkModuleOptions,
 } from './interfaces';
 import {
+  createHearManagerProvider,
+  createLegacyHearManagerProvider,
+  createLegacySceneManagerProvider,
+  createLegacySessionManagerProvider,
+  createSceneManagerProvider,
+  createSessionManagerProvider,
   hearManagerProvider,
   sceneManagerProvider,
   sessionManagerProvider,
 } from './providers';
+import { getVkManagersOptionsToken } from './utils';
 import { VkCoreModule } from './vk-core.module';
 import { VK_MANAGERS_OPTIONS } from './vk.constants';
 
@@ -22,16 +29,26 @@ export class VkModule {
     };
   }
 
-  public static forManagers(options: VkManagersOptions): DynamicModule {
-    const providers = [
-      {
-        provide: VK_MANAGERS_OPTIONS,
-        useValue: options,
-      },
-      sessionManagerProvider,
-      sceneManagerProvider,
-      hearManagerProvider,
-    ];
+  public static forManagers(
+    options: VkManagersOptions,
+    vkName?: string,
+  ): DynamicModule {
+    const providers = vkName
+      ? [
+          { provide: getVkManagersOptionsToken(vkName), useValue: options },
+          createSessionManagerProvider(vkName),
+          createSceneManagerProvider(vkName),
+          createHearManagerProvider(vkName),
+          createLegacySessionManagerProvider(vkName),
+          createLegacySceneManagerProvider(vkName),
+          createLegacyHearManagerProvider(vkName),
+        ]
+      : [
+          { provide: VK_MANAGERS_OPTIONS, useValue: options },
+          sessionManagerProvider,
+          sceneManagerProvider,
+          hearManagerProvider,
+        ];
 
     return {
       module: VkModule,

@@ -20,7 +20,6 @@ import { SessionManager } from '@vk-io/session';
 import { BestSceneContextState } from 'src/interfaces/best-scene-context-state';
 
 import { AdminGuard, VkExceptionFilter } from '../common';
-import { Context } from '../interfaces/context.interface';
 
 @Update()
 @UseFilters(VkExceptionFilter)
@@ -30,14 +29,15 @@ export class BotPartialUpdate {
     private readonly firstBot: VK,
     @InjectVkApi('secondBot')
     private readonly secondBot: VK,
-    @InjectVkHearManager() // or @Inject(VK_HEAR_MANAGER)
-    private readonly hearManagerProvider: HearManager<MessageContext>,
-    @InjectVkSessionManager() // or @Inject(VK_SESSION_MANAGER)
-    private readonly sessionManagerProvider: SessionManager,
-    @InjectVkSceneManager() // or @Inject(VK_SCENE_MANAGER)
-    private readonly sceneManager: SceneManager,
+
+    @InjectVkHearManager('firstBot')
+    private readonly hearManagerProvider_first: HearManager<MessageContext>,
+    @InjectVkSessionManager('firstBot')
+    private readonly sessionManagerProvider_first: SessionManager,
+    @InjectVkSceneManager('firstBot')
+    private readonly sceneManager_first: SceneManager,
   ) {
-    this.hearManagerProvider
+    this.hearManagerProvider_first
       .hear('qq', (ctx) => {
         ctx.send('HelloW');
       })
@@ -48,7 +48,7 @@ export class BotPartialUpdate {
         return ctx.scene.enter('BEST_SCEN');
       });
 
-    this.sceneManager.addScenes([
+    this.sceneManager_first.addScenes([
       new StepScene<MessageContext, BestSceneContextState>('signup', [
         (context) => {
           if (context.scene.step.firstTime || !context.text) {
@@ -80,10 +80,13 @@ export class BotPartialUpdate {
   }
 
   @On('message')
-  async onMessageFirst(@Ctx() ctx: Context, @Next() next: NextMiddleware) {
+  async onMessageFirst(
+    @Ctx() ctx: MessageContext,
+    @Next() next: NextMiddleware,
+  ) {
     if (ctx.is(['message'])) {
       // Skip messages
-      if (ctx.isOutbox || ctx.isFromGroup) {
+      if (ctx.isOutbox || ctx.isGroup) {
         return;
       }
     }
@@ -99,9 +102,9 @@ export class BotPartialUpdate {
   onInfoCommand() {
     const message = `
     Info:
-    • hearManagerProvider.length: ${this.hearManagerProvider.length}
-    • sessionManagerProvider.length: ${JSON.stringify(
-      this.sessionManagerProvider,
+    • hearManagerProvider_first.length: ${this.hearManagerProvider_first.length}
+    • sessionManagerProvider_first.length: ${JSON.stringify(
+      this.sessionManagerProvider_first,
     ).slice(0, 150)}
     `;
     return message;
@@ -109,7 +112,7 @@ export class BotPartialUpdate {
 
   @Hears(/^\/?(start|старт)$/i)
   async onStartCommand(@Next() next: NextMiddleware) {
-    /* for test */ next();
+    /* for test */ next(); // to onHearFallback
     return `Hey`;
   }
 
@@ -148,8 +151,11 @@ export class BotPartialUpdate {
   }
 
   @On('message_new')
-  async onMessageAuth(@Ctx() ctx: Context, @Next() next: NextMiddleware) {
-    const authRequired = false;
+  async onMessageAuth(
+    @Ctx() ctx: MessageContext,
+    @Next() next: NextMiddleware,
+  ) {
+    const authRequired = false; // disabled for test
 
     if (authRequired && !ctx.session.isAuth) {
       if (!ctx.is(['message'])) {

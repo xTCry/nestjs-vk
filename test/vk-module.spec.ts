@@ -13,6 +13,11 @@ import {
   InjectVkSessionManager,
 } from '../lib/decorators';
 import { ListenersExplorerService } from '../lib/services';
+import {
+  getVkHearManagerToken,
+  getVkSceneManagerToken,
+  getVkSessionManagerToken,
+} from '../lib/utils';
 import { VkModule } from '../lib/vk.module';
 
 describe('VkModule', () => {
@@ -113,6 +118,96 @@ describe('VkModule', () => {
     expect(update.hearManagerProvider).toBeDefined();
     expect(update.sessionManagerProvider).toBeDefined();
     expect(update.sceneManager).toBeDefined();
+
+    await moduleRef.close();
+  });
+
+  it('exports named managers for application providers', async () => {
+    @Injectable()
+    class MultiBotUpdateWithManagers {
+      constructor(
+        @InjectVkHearManager('firstBot')
+        readonly firstHearManagerProvider: HearManager<MessageContext>,
+        @InjectVkHearManager('secondBot')
+        readonly secondHearManagerProvider: HearManager<MessageContext>,
+        @InjectVkSessionManager('firstBot')
+        readonly firstSessionManagerProvider: SessionManager,
+        @InjectVkSessionManager('secondBot')
+        readonly secondSessionManagerProvider: SessionManager,
+        @InjectVkSceneManager('firstBot')
+        readonly firstSceneManager: SceneManager,
+        @InjectVkSceneManager('secondBot')
+        readonly secondSceneManager: SceneManager,
+      ) {}
+    }
+
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        VkModule.forRoot({
+          vkName: 'firstBot',
+          token: 'test-token',
+          launchOptions: false,
+        }),
+        VkModule.forRoot({
+          vkName: 'secondBot',
+          token: 'test-token',
+          launchOptions: false,
+        }),
+      ],
+      providers: [MultiBotUpdateWithManagers],
+    }).compile();
+
+    const update = moduleRef.get(MultiBotUpdateWithManagers);
+
+    expect(update.firstHearManagerProvider).toBeDefined();
+    expect(update.secondHearManagerProvider).toBeDefined();
+    expect(update.firstHearManagerProvider).not.toBe(
+      update.secondHearManagerProvider,
+    );
+    expect(update.firstSessionManagerProvider).not.toBe(
+      update.secondSessionManagerProvider,
+    );
+    expect(update.firstSceneManager).not.toBe(update.secondSceneManager);
+
+    await moduleRef.close();
+  });
+
+  it('uses named forManagers options only for the matching bot', async () => {
+    const firstHearManager = new HearManager<MessageContext>();
+
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        VkModule.forManagers({ useHearManager: firstHearManager }, 'firstBot'),
+        VkModule.forRoot({
+          vkName: 'firstBot',
+          token: 'test-token',
+          launchOptions: false,
+        }),
+        VkModule.forRoot({
+          vkName: 'secondBot',
+          token: 'test-token',
+          launchOptions: false,
+        }),
+      ],
+    }).compile();
+
+    expect(
+      moduleRef.get(getVkHearManagerToken('firstBot'), { strict: false }),
+    ).toBe(firstHearManager);
+    expect(
+      moduleRef.get(getVkHearManagerToken('secondBot'), { strict: false }),
+    ).toBeDefined();
+    expect(
+      moduleRef.get(getVkHearManagerToken('firstBot'), { strict: false }),
+    ).not.toBe(
+      moduleRef.get(getVkHearManagerToken('secondBot'), { strict: false }),
+    );
+    expect(
+      moduleRef.get(getVkSessionManagerToken('firstBot'), { strict: false }),
+    ).toBeDefined();
+    expect(
+      moduleRef.get(getVkSceneManagerToken('firstBot'), { strict: false }),
+    ).toBeDefined();
 
     await moduleRef.close();
   });

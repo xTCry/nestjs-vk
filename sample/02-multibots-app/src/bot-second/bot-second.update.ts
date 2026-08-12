@@ -16,16 +16,19 @@ import { VkExceptionFilter } from '../common';
 @UseFilters(VkExceptionFilter)
 export class BotSecondlUpdate {
   constructor(
-    @InjectVkHearManager() // @Inject(VK_HEAR_MANAGER)
-    private readonly hearManagerProvider: HearManager<MessageContext>,
-    @InjectVkSessionManager() // @Inject(VK_SESSION_MANAGER)
-    private readonly sessionManagerProvider: SessionManager,
+    @InjectVkHearManager('secondBot')
+    private readonly hearManagerProvider_second: HearManager<MessageContext>,
+    @InjectVkSessionManager('secondBot')
+    private readonly sessionManagerProvider_second: SessionManager,
   ) {
-    this.hearManagerProvider.hear('wow', (ctx) => {
+    this.hearManagerProvider_second.hear('wow', (ctx) => {
       ctx.send('Wohoh');
     });
 
-    console.log('[BotSecondlUpdate] ctr', this.hearManagerProvider.length);
+    console.log(
+      '[BotSecondlUpdate] ctr',
+      this.hearManagerProvider_second.length,
+    );
   }
 
   @Hears('/second')
@@ -37,9 +40,9 @@ export class BotSecondlUpdate {
   onInfoCommand() {
     const message = `
     Info:
-    • hearManagerProvider.length: ${this.hearManagerProvider.length}
+    • hearManagerProvider.length: ${this.hearManagerProvider_second.length}
     • sessionManagerProvider.length: ${JSON.stringify(
-      this.sessionManagerProvider,
+      this.sessionManagerProvider_second,
     ).slice(0, 150)}
     `;
     return message;

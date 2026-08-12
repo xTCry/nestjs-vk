@@ -95,6 +95,18 @@ Use `VkModule.forManagers()` only when you need to:
 - move manager middleware into `middlewaresBefore` / `middlewaresAfter`;
 - share the same explicitly configured managers through DI.
 
+For multiple bots, configure managers for a specific bot by passing `vkName` as
+the second argument:
+
+```typescript
+VkModule.forManagers(
+  {
+    useSceneManager: false,
+  },
+  'firstBot',
+);
+```
+
 Main middleware `main.middleware.ts`:
 
 ```typescript
@@ -161,6 +173,20 @@ export class AppUpdate {
     private readonly sessionManager: SessionManager,
     @InjectVkSceneManager()
     private readonly sceneManager: SceneManager,
+  ) {}
+}
+```
+
+In multi-bot applications, pass `vkName` to inject decorators to get the manager
+for a specific bot:
+
+```typescript
+export class AppUpdate {
+  constructor(
+    @InjectVkHearManager('firstBot')
+    private readonly firstBotHearManager: HearManager<MessageContext>,
+    @InjectVkHearManager('secondBot')
+    private readonly secondBotHearManager: HearManager<MessageContext>,
   ) {}
 }
 ```

@@ -12,17 +12,20 @@ export class BestScene {
   }
 
   @SceneEnter()
-  async onSceneEnter() {
+  async onSceneEnter(ctx: IStepContext<BestSceneContextState>) {
     console.log('Wait Enter to scene...');
 
-    await new Promise((r) => setTimeout(r, 5e3));
+    if (ctx.scene.step.firstTime) {
+      await new Promise((r) => setTimeout(r, 5e3));
+    }
 
     console.log('Enter to scene');
   }
 
   @SceneLeave()
-  onSceneLeave() {
+  onSceneLeave(ctx: IStepContext<BestSceneContextState>) {
     console.log('Leave from scene');
+    ctx.send('scene done');
   }
 
   @AddStep(10)

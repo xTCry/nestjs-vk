@@ -16,19 +16,39 @@ import {
   VkOptionsFactory,
 } from './interfaces';
 import {
-  hearManagerProvider,
-  sceneManagerProvider,
-  sessionManagerProvider,
+  createHearManagerProvider,
+  createLegacyHearManagerProvider,
+  createLegacySceneManagerProvider,
+  createLegacySessionManagerProvider,
+  createSceneManagerProvider,
+  createSessionManagerProvider,
 } from './providers';
 import { ListenersExplorerService, MetadataAccessorService } from './services';
 import { createVkApiFactory, getVkApiToken } from './utils';
-import { VK_API_NAME, VK_MODULE_OPTIONS } from './vk.constants';
+import {
+  DEFAULT_VK_API_NAME,
+  VK_API_NAME,
+  VK_MODULE_OPTIONS,
+} from './vk.constants';
 
-const defaultManagerProviders: Provider[] = [
-  hearManagerProvider,
-  sessionManagerProvider,
-  sceneManagerProvider,
-];
+const createManagerProviders = (vkName?: string): Provider[] => {
+  const providers = [
+    createHearManagerProvider(vkName),
+    createSessionManagerProvider(vkName),
+    createSceneManagerProvider(vkName),
+  ];
+
+  if (!vkName || vkName === DEFAULT_VK_API_NAME) {
+    return providers;
+  }
+
+  return [
+    ...providers,
+    createLegacyHearManagerProvider(vkName),
+    createLegacySessionManagerProvider(vkName),
+    createLegacySceneManagerProvider(vkName),
+  ];
+};
 
 @Global()
 @Module({
@@ -58,7 +78,7 @@ export class VkCoreModule implements OnApplicationShutdown {
     const providers = [
       vkApiNameProvider,
       vkApiProvider,
-      ...defaultManagerProviders,
+      ...createManagerProviders(options.vkName),
     ];
 
     return {
@@ -93,7 +113,7 @@ export class VkCoreModule implements OnApplicationShutdown {
     const providers = [
       vkApiNameProvider,
       vkApiProvider,
-      ...defaultManagerProviders,
+      ...createManagerProviders(options.vkName),
     ];
 
     return {

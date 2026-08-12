@@ -43,7 +43,7 @@ export class EchoUpdate {
   onMessageFirst(@Ctx() ctx: Context, @Next() next: NextMiddleware) {
     if (ctx.is(['message'])) {
       // Skip messages
-      if (ctx.isOutbox || ctx.isFromGroup) {
+      if (ctx.isOutbox || ctx.isGroup) {
         return;
       }
     }
