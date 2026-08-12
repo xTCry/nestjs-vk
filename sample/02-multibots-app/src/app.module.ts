@@ -7,6 +7,7 @@ import { BotSecondlModule } from './bot-second/bot-second.module';
 @Global()
 @Module({
   imports: [
+    VkModule.forManagers({}),
     VkModule.forRootAsync({
       vkName: 'firstBot',
       useFactory: async () => ({

@@ -1,8 +1,8 @@
 import { Inject, UseFilters } from '@nestjs/common';
 import {
-  Update,
   Ctx,
   Hears,
+  Update,
   VK_HEAR_MANAGER,
   VK_SESSION_MANAGER,
 } from 'nestjs-vk';
@@ -34,7 +34,7 @@ export class BotSecondlUpdate {
   }
 
   @Hears('/info2')
-  onInfoCommand(@Ctx() ctx: MessageContext) {
+  onInfoCommand() {
     const message = `
     Info:
     • hearManagerProvider.length: ${this.hearManagerProvider.length}

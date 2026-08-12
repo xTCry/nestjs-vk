@@ -5,7 +5,10 @@ import { Context } from 'vk-io';
 @Injectable()
 export class FeaturesMiddleware {
   get middleware() {
-    return async (ctx: Context, next: NextMiddleware): Promise<MiddlewareReturn> => {
+    return async (
+      ctx: Context,
+      next: NextMiddleware,
+    ): Promise<MiddlewareReturn> => {
       if (ctx.is(['message'])) {
         if (ctx.isOutbox) {
           return;

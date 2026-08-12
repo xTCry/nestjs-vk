@@ -1,25 +1,26 @@
 import { Inject, UseFilters, UseGuards } from '@nestjs/common';
 import {
-  InjectVkApi,
-  Update,
-  On,
   Ctx,
-  Next,
-  Hears,
   HearFallback,
+  Hears,
+  InjectVkApi,
+  Next,
+  On,
+  Update,
   VK_HEAR_MANAGER,
-  VK_SESSION_MANAGER,
   VK_SCENE_MANAGER,
+  VK_SESSION_MANAGER,
 } from 'nestjs-vk';
+import { NextMiddleware } from 'middleware-io';
 import { getRandomId, MessageContext, VK } from 'vk-io';
 import { HearManager } from '@vk-io/hear';
-import { SessionManager } from '@vk-io/session';
 import { SceneManager, StepScene } from '@vk-io/scenes';
-import { NextMiddleware } from 'middleware-io';
+import { SessionManager } from '@vk-io/session';
 
-import { Context } from '../interfaces/context.interface';
-import { VkExceptionFilter, AdminGuard } from '../common';
 import { BestSceneContextState } from 'src/interfaces/best-scene-context-state';
+
+import { AdminGuard, VkExceptionFilter } from '../common';
+import { Context } from '../interfaces/context.interface';
 
 @Update()
 @UseFilters(VkExceptionFilter)
@@ -48,7 +49,7 @@ export class BotPartialUpdate {
       });
 
     this.sceneManager.addScenes([
-      new StepScene<{}, BestSceneContextState>('signup', [
+      new StepScene<MessageContext, BestSceneContextState>('signup', [
         (context) => {
           if (context.scene.step.firstTime || !context.text) {
             return context.send("What's your name?");
@@ -95,7 +96,7 @@ export class BotPartialUpdate {
   }
 
   @Hears('/info')
-  onInfoCommand(@Ctx() ctx: MessageContext) {
+  onInfoCommand() {
     const message = `
     Info:
     • hearManagerProvider.length: ${this.hearManagerProvider.length}
@@ -148,7 +149,9 @@ export class BotPartialUpdate {
 
   @On('message_new')
   async onMessageAuth(@Ctx() ctx: Context, @Next() next: NextMiddleware) {
-    if (!1 && !ctx.session.isAuth) {
+    const authRequired = false;
+
+    if (authRequired && !ctx.session.isAuth) {
       if (!ctx.is(['message'])) {
         return 'Need auth! Send any text message';
       }

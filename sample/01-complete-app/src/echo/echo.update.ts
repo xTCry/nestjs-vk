@@ -1,20 +1,20 @@
 import { UseFilters, UseGuards } from '@nestjs/common';
 import {
-  InjectVkApi,
-  Update,
-  On,
   Ctx,
-  Next,
-  Message,
-  Hears,
   HearFallback,
+  Hears,
+  InjectVkApi,
+  Message,
+  Next,
+  On,
+  Update,
 } from 'nestjs-vk';
-import { MessageContext, VK } from 'vk-io';
 import { NextMiddleware } from 'middleware-io';
+import { MessageContext, VK } from 'vk-io';
 
-import { EchoService } from './echo.service';
+import { AdminGuard, ReverseTextPipe, VkExceptionFilter } from '../common';
 import { Context } from '../interfaces/context.interface';
-import { VkExceptionFilter, AdminGuard, ReverseTextPipe } from '../common';
+import { EchoService } from './echo.service';
 
 @Update()
 @UseFilters(VkExceptionFilter)
@@ -29,7 +29,9 @@ export class EchoUpdate {
 
   async onModuleInit() {
     try {
-      const [group] = await this.bot.api.groups.getById({});
+      const {
+        groups: [group],
+      } = await this.bot.api.groups.getById({});
 
       this.groupId = group.id;
     } catch (err) {

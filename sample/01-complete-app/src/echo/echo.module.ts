@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
-import { EchoUpdate } from './echo.update';
+
 import { EchoService } from './echo.service';
+import { EchoUpdate } from './echo.update';
 
 @Module({
   providers: [EchoUpdate, EchoService],

@@ -1,6 +1,8 @@
+import { AddStep, Context, Scene, SceneEnter, SceneLeave } from 'nestjs-vk';
 import { IStepContext } from '@vk-io/scenes';
-import { Scene, AddStep, Context, SceneEnter, SceneLeave } from 'nestjs-vk';
+
 import { BestSceneContextState } from 'src/interfaces/best-scene-context-state';
+
 // import { Context } from '../../interfaces/context.interface';
 
 @Scene('BEST_SCEN')

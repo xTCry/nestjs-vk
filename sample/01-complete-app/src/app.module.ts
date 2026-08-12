@@ -1,16 +1,20 @@
-import { Global, Module, OnModuleInit } from '@nestjs/common';
+import { Global, Logger, Module, OnModuleInit } from '@nestjs/common';
 import { InjectVkApi, VkModule } from 'nestjs-vk';
 import { VK } from 'vk-io';
 
-import { FeaturesMiddleware } from './middleware/features.middleware';
-
 import { EchoModule } from './echo/echo.module';
+import { FeaturesMiddleware } from './middleware/features.middleware';
 
 const middlewares = [FeaturesMiddleware];
 
 @Global()
 @Module({
   imports: [
+    VkModule.forManagers({
+      // useSessionManager: false,
+      useSceneManager: false,
+      // useHearManager: false,
+    }),
     VkModule.forRootAsync({
       useFactory: async (featuresMiddleware: FeaturesMiddleware) => ({
         token: process.env.BOT_TOKEN,
@@ -18,8 +22,6 @@ const middlewares = [FeaturesMiddleware];
           pollingGroupId: +process.env.BOT_GROUP_ID,
           apiMode: 'sequential',
         },
-        // useSessionManager: false,
-        // useHearManager: false,
         launchOptions: false,
         notReplyMessage: true,
         middlewaresBefore: [featuresMiddleware.middleware],
@@ -33,16 +35,17 @@ const middlewares = [FeaturesMiddleware];
   exports: [...middlewares],
 })
 export class AppModule implements OnModuleInit {
+  private readonly logger = new Logger(AppModule.name);
+
   constructor(
     @InjectVkApi()
     private readonly vk: VK,
   ) {}
 
   async onModuleInit() {
-    try {
-      await this.vk.updates.start();
-    } catch (err) {
-      console.error(err);
-    }
+    this.vk.updates
+      .start()
+      .then(() => this.logger.log('[Bot] Started'))
+      .catch((err) => this.logger.error(err));
   }
 }
