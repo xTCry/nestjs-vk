@@ -6,7 +6,10 @@
   "bugs": {
     "url": "https://github.com/xTCry/nestjs-vk/issues"
   },
-  "repository": "git@github.com:xTCry/nestjs-vk.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xTCry/nestjs-vk.git"
+  },
   "license": "MIT",
   "author": "xTCry [Vladislav Kh] (https://github.com/xTCry/)",
   "main": "./dist/index.js",
@@ -31,7 +34,8 @@
     "release:minor": "release-it minor",
     "release:major": "release-it major",
     "release:patch": "release-it patch",
-    "release:rc": "release-it --preRelease=rc"
+    "release:rc": "release-it --preRelease=rc",
+    "prepare": "husky"
   },
   "dependencies": {
     "@vk-io/hear": "^1.1.0",
@@ -41,6 +45,8 @@
     "rimraf": "^6.1.2"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
     "@eslint/js": "^9.39.2",
     "@nestjs/common": "^11.1.0",
     "@nestjs/core": "^11.1.0",
@@ -54,7 +60,9 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "globals": "^16.5.0",
+    "husky": "^9.1.7",
     "jest": "^30.4.2",
+    "lint-staged": "^17.3.0",
     "middleware-io": "^2.8.1",
     "prettier": "3.7.4",
     "reflect-metadata": "0.2.2",
@@ -72,6 +80,17 @@
     "rxjs": "^6.0.0 || ^7.2.0",
     "vk-io": "^4.10.0"
   },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "git add -f"
+    ]
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "nest",
     "nestjs",
