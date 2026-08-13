@@ -13,9 +13,20 @@ export class BestScene {
 
   @SceneEnter()
   async onSceneEnter(ctx: IStepContext<BestSceneContextState>) {
-    console.log('Wait Enter to scene...');
+    console.log(
+      'Wait Enter to scene...',
+      '| $groupId:',
+      ctx.$groupId,
+      '| peerId:',
+      ctx.peerId,
+      '| senderId:',
+      ctx.senderId,
+    );
 
     if (ctx.scene.step.firstTime) {
+      ctx['api'].messages
+        .setActivity({ type: 'typing', peer_id: ctx.peerId })
+        .catch(console.error);
       await new Promise((r) => setTimeout(r, 5e3));
     }
 
@@ -24,7 +35,7 @@ export class BestScene {
 
   @SceneLeave()
   onSceneLeave(ctx: IStepContext<BestSceneContextState>) {
-    console.log('Leave from scene');
+    console.log('Leave from scene', ctx.$groupId, ctx.peerId, ctx.senderId);
     ctx.send('scene done');
   }
 
@@ -41,7 +52,7 @@ export class BestScene {
     return context.scene.step.next();
   }
 
-  @AddStep()
+  @AddStep() // 1
   step1(@Context() context: IStepContext<BestSceneContextState>) {
     if (context.scene.step.firstTime || !context.text) {
       return context.send("What's your name?");
@@ -52,10 +63,14 @@ export class BestScene {
     return context.scene.step.next();
   }
 
-  @AddStep()
+  @AddStep() // 2
   step2(@Context() context: IStepContext<BestSceneContextState>) {
     if (context.scene.step.firstTime || !context.text) {
       return context.send('How old are you?');
+    }
+
+    if (isNaN(+context.text)) {
+      return context.send('Only numeric pls');
     }
 
     context.scene.state.age = context.text;
@@ -63,7 +78,7 @@ export class BestScene {
     return context.scene.step.next();
   }
 
-  @AddStep()
+  @AddStep() // 3
   async step3(@Context() context: IStepContext<BestSceneContextState>) {
     const { firstName, age } = context.scene.state;
 

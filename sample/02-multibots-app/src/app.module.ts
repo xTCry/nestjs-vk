@@ -1,13 +1,12 @@
-import { Global, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { VkModule } from 'nestjs-vk';
 
 import { BotPartialModule } from './bot-partial/bot-partial.module';
-import { BotSecondlModule } from './bot-second/bot-second.module';
+import { BotSecondModule } from './bot-second/bot-second.module';
 
-@Global()
 @Module({
   imports: [
-    VkModule.forManagers({ useSceneManager: false }, 'secondBot'),
+    // VkModule.forManagers({ useSceneManager: false }, 'secondBot'),
     VkModule.forRootAsync({
       vkName: 'firstBot',
       useFactory: async () => ({
@@ -17,6 +16,7 @@ import { BotSecondlModule } from './bot-second/bot-second.module';
           apiMode: 'sequential',
         },
         notReplyMessage: true,
+        // BotPartialModule providers and scenes are registered for firstBot.
         include: [BotPartialModule],
       }),
     }),
@@ -29,11 +29,12 @@ import { BotSecondlModule } from './bot-second/bot-second.module';
           apiMode: 'sequential',
         },
         notReplyMessage: true,
-        include: [BotPartialModule, BotSecondlModule],
+        // BotPartialModule is shared, BotSecondModule is registered only for secondBot.
+        include: [BotPartialModule, BotSecondModule],
       }),
     }),
     BotPartialModule,
-    BotSecondlModule,
+    BotSecondModule,
   ],
   providers: [],
   exports: [],

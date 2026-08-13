@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { BotSecondlUpdate } from './bot-second.update';
+import { BotSecondUpdate } from './bot-second.update';
 
 @Module({
-  providers: [BotSecondlUpdate],
+  providers: [BotSecondUpdate],
 })
-export class BotSecondlModule {}
+export class BotSecondModule {}

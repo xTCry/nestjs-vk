@@ -246,6 +246,9 @@ export class AppUpdate {
 <details>
 <summary>Multi-bot and <code>vkName</code></summary>
 
+A complete multi-bot application example is available in
+[`sample/02-multibots-app`](./sample/02-multibots-app).
+
 In multi-bot applications, pass `vkName` to inject decorators to get the manager
 for a specific bot:
 

@@ -248,6 +248,9 @@ export class AppUpdate {
 <details>
 <summary>Multi-bot и <code>vkName</code></summary>
 
+Полный пример multi-bot приложения есть в
+[`sample/02-multibots-app`](./sample/02-multibots-app).
+
 В multi-bot приложениях передавайте `vkName` в inject decorators, чтобы получить
 manager конкретного бота:
 

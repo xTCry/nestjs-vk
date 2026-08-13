@@ -21,6 +21,7 @@ import { BestSceneContextState } from 'src/interfaces/best-scene-context-state';
 
 import { AdminGuard, VkExceptionFilter } from '../common';
 
+// * Set listeners for all bots
 @Update()
 @UseFilters(VkExceptionFilter)
 export class BotPartialUpdate {
@@ -31,13 +32,17 @@ export class BotPartialUpdate {
     private readonly secondBot: VK,
 
     @InjectVkHearManager('firstBot')
-    private readonly hearManagerProvider_first: HearManager<MessageContext>,
+    private readonly firstBotHearManager: HearManager<MessageContext>,
     @InjectVkSessionManager('firstBot')
-    private readonly sessionManagerProvider_first: SessionManager,
+    private readonly firstBotSessionManager: SessionManager,
     @InjectVkSceneManager('firstBot')
-    private readonly sceneManager_first: SceneManager,
+    private readonly firstBotSceneManager: SceneManager,
+    //
+    @InjectVkHearManager('secondBot')
+    private readonly secondBotHearManager: HearManager<MessageContext>,
   ) {
-    this.hearManagerProvider_first
+    // * Custom hear handlers registered only in firstBot HearManager
+    this.firstBotHearManager
       .hear('qq', (ctx) => {
         ctx.send('HelloW');
       })
@@ -48,7 +53,24 @@ export class BotPartialUpdate {
         return ctx.scene.enter('BEST_SCEN');
       });
 
-    this.sceneManager_first.addScenes([
+    // Custom hear handler registered only in secondBot HearManager.
+    this.secondBotHearManager
+      .hear('ww2', (ctx) => {
+        // * Error: Value by signup not found
+        return ctx.scene.enter('signup');
+      })
+      .hear('ff2', (ctx) => {
+        // * Scene exists
+        return ctx.scene?.enter('BEST_SCEN');
+        // ! Not workd when `VkModule.forManagers({ useSceneManager: false }, 'secondBot')` in AppModule
+      });
+
+    console.log('secondBotHearManager.length', secondBotHearManager.length);
+
+    // This scene is registered only in firstBot SceneManager.
+    // `BEST_SCEN` is declared with @Scene() in BotPartialModule and is available
+    // for every bot that includes BotPartialModule.
+    this.firstBotSceneManager.addScenes([
       new StepScene<MessageContext, BestSceneContextState>('signup', [
         (context) => {
           if (context.scene.step.firstTime || !context.text) {
@@ -91,6 +113,18 @@ export class BotPartialUpdate {
       }
     }
 
+    console.log(
+      'OnMessage',
+      '| $groupId:',
+      ctx.$groupId,
+      '| peerId:',
+      ctx.peerId,
+      '| senderId:',
+      ctx.senderId,
+      '| Text len:',
+      ctx.text?.length,
+    );
+
     try {
       await next();
     } catch (err) {
@@ -102,9 +136,9 @@ export class BotPartialUpdate {
   onInfoCommand() {
     const message = `
     Info:
-    • hearManagerProvider_first.length: ${this.hearManagerProvider_first.length}
-    • sessionManagerProvider_first.length: ${JSON.stringify(
-      this.sessionManagerProvider_first,
+    • firstBotHearManager.length: ${this.firstBotHearManager.length}
+    • firstBotSessionManager: ${JSON.stringify(
+      this.firstBotSessionManager,
     ).slice(0, 150)}
     `;
     return message;
