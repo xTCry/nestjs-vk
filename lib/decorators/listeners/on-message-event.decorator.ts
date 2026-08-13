@@ -18,8 +18,15 @@ export type MessageEventPayloadValue =
 
 /** Условие, которому должен удовлетворять payload callback-события VK. */
 export type MessageEventCondition =
+  | string
+  | RegExp
   | Record<string, MessageEventPayloadValue>
-  | ((payload: MessageEventPayload, context: MessageEventContext) => boolean);
+  | ((payload: MessageEventPayload, ctx: MessageEventContext) => boolean);
+
+/** Контекст `message_event` с результатом сопоставления строкового payload. */
+export type MessageEventContextWithMatch = MessageEventContext & {
+  $match?: RegExpMatchArray;
+};
 
 /** Обрабатывает `message_event` и, при наличии условия, фильтрует event payload. */
 export const OnMessageEvent =

@@ -2,6 +2,7 @@ import type { MessageEventContext } from 'vk-io';
 
 import type {
   MessageEventCondition,
+  MessageEventContextWithMatch,
   MessageEventPayload,
 } from '../decorators/listeners/on-message-event.decorator';
 
@@ -15,6 +16,10 @@ export function matchMessageEventPayload(
     return true;
   }
 
+  if (typeof condition === 'string' || condition instanceof RegExp) {
+    return matchStringPayload(payload, condition, context);
+  }
+
   if (typeof condition === 'function') {
     return isRecord(payload) && condition(payload, context);
   }
@@ -26,6 +31,27 @@ export function matchMessageEventPayload(
   return Object.entries(condition).every(([key, value]) =>
     matchValue(payload[key], value),
   );
+}
+
+/** Сопоставляет строковый payload с условием и сохраняет результат в `$match`. */
+function matchStringPayload(
+  payload: unknown,
+  condition: string | RegExp,
+  context: MessageEventContext,
+): boolean {
+  if (typeof payload !== 'string') {
+    return false;
+  }
+
+  const match = payload.match(condition);
+
+  if (!match) {
+    return false;
+  }
+
+  (context as MessageEventContextWithMatch).$match = match;
+
+  return true;
 }
 
 /** Сужает неизвестное значение до объекта, доступного для проверки полей. */

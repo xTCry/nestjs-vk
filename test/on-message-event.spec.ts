@@ -104,6 +104,67 @@ describe('OnMessageEvent', () => {
     expect(handled).toHaveBeenCalledTimes(1);
   });
 
+  it('passes string payloads matching a string condition', async () => {
+    const { explorer, updates, handled, next } = createExplorer('request_auth');
+
+    registerListener(explorer, updates);
+    await emitMessageEvent(
+      updates,
+      { eventPayload: 'request_auth' } as MessageEventContext,
+      next,
+    );
+
+    expect(handled).toHaveBeenCalledTimes(1);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('stores string matches from string payloads in context $match', async () => {
+    const { explorer, updates, handled, next } = createExplorer('request_auth');
+    const context = {
+      eventPayload: 'request_auth:secret-code',
+    } as MessageEventContext & { $match?: RegExpMatchArray };
+
+    registerListener(explorer, updates);
+    await emitMessageEvent(updates, context, next);
+
+    expect(handled).toHaveBeenCalledTimes(1);
+    expect(context.$match?.[0]).toBe('request_auth');
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('stores regexp matches from string payloads in context $match', async () => {
+    const { explorer, updates, handled, next } = createExplorer(
+      /^request_auth:(?<code>.*):(?<state>.*)/,
+    );
+    const context = {
+      eventPayload: 'request_auth:secret-code:state-json',
+    } as MessageEventContext & { $match?: RegExpMatchArray };
+
+    registerListener(explorer, updates);
+    await emitMessageEvent(updates, context, next);
+
+    expect(handled).toHaveBeenCalledTimes(1);
+    expect(context.$match?.groups).toEqual({
+      code: 'secret-code',
+      state: 'state-json',
+    });
+  });
+
+  it('passes non-matching string payloads to the next listener', async () => {
+    const { explorer, updates, handled, next } =
+      createExplorer(/^request_auth:/);
+
+    registerListener(explorer, updates);
+    await emitMessageEvent(
+      updates,
+      { eventPayload: 'another_action' } as MessageEventContext,
+      next,
+    );
+
+    expect(handled).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
   it('matches nested object conditions and regular expressions', () => {
     const context = {} as MessageEventContext;
 
