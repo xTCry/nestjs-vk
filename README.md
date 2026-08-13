@@ -48,17 +48,110 @@ import { Module } from '@nestjs/common';
 import { VkModule } from 'nestjs-vk';
 
 import { AppUpdate } from './app.update';
+
+@Module({
+  imports: [
+    VkModule.forRoot({
+      token: process.env.VK_BOT_TOKEN,
+      options: {
+        pollingGroupId: +process.env.VK_BOT_GROUP_ID,
+        apiMode: 'sequential',
+      },
+    }),
+  ],
+  providers: [AppUpdate],
+})
+export class AppModule {}
+```
+
+Создайте `app.update.ts`:
+
+```typescript
+import { Ctx, Hears, Update } from 'nestjs-vk';
+import { MessageContext } from 'vk-io';
+
+@Update()
+export class AppUpdate {
+  @Hears(/^\/?(start|старт)$/i)
+  async onStartCommand(@Ctx() ctx: MessageContext) {
+    await ctx.reply('Добро пожаловать');
+  }
+}
+```
+
+Для callback-кнопок можно использовать `OnMessageEvent`:
+
+```typescript
+import { Ctx, OnMessageEvent, Update } from 'nestjs-vk';
+import { MessageEventContext } from 'vk-io';
+
+@Update()
+export class AppUpdate {
+  @OnMessageEvent({ action: 'open_queue' })
+  async onOpenQueue(@Ctx() ctx: MessageEventContext) {
+    await ctx.answer({ type: 'show_snackbar', text: 'Очередь открыта' });
+  }
+}
+```
+
+<details>
+<summary>Настройка managers через <code>VkModule.forManagers()</code></summary>
+
+`VkModule.forManagers()` не обязателен для стандартного запуска. Без него
+`nestjs-vk` автоматически создаёт и регистрирует `SessionManager`,
+`SceneManager` и `HearManager`.
+
+Используйте `VkModule.forManagers()` только если нужно:
+
+- отключить один из default managers;
+- передать собственный экземпляр manager;
+- отключить автоматическую регистрацию manager middleware, чтобы подключить его
+  вручную в `middlewaresBefore` / `middlewaresAfter`;
+- сделать эти настройки для конкретного `vkName`.
+
+Для нескольких ботов можно настроить managers конкретного бота через второй
+аргумент `vkName`:
+
+```typescript
+VkModule.forManagers(
+  {
+    useSceneManager: false,
+  },
+  'firstBot',
+);
+```
+
+`forManagers()` не создаёт отдельную вторую копию manager-а поверх `forRoot()`.
+Он задаёт options, по которым `forRoot()` / `forRootAsync()` создадут и
+подключат managers этого бота. Поэтому `@InjectVkHearManager('firstBot')` и
+внутренняя регистрация `@Hears()` используют один и тот же `HearManager`.
+
+Пустой вызов `VkModule.forManagers({}, 'firstBot')` обычно не нужен: он
+эквивалентен дефолтному поведению. Используйте его только если так удобнее
+явно показать, что настройки managers для этого бота оставлены стандартными.
+
+Если указать `useSceneManager: false`, модуль не подключит
+`SceneManager.middleware` и `SceneManager.middlewareIntercept` для этого бота.
+В таком режиме `ctx.scene.enter(...)` и обработка текущей scene для этого бота
+не будут работать, пока вы не подключите scene middleware вручную.
+
+</details>
+
+<details>
+<summary>Расширенная настройка модуля, middleware и manager providers</summary>
+
+Пример `AppModule` с `forRootAsync()` и ручным порядком middleware:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { VkModule } from 'nestjs-vk';
+
+import { AppUpdate } from './app.update';
+import { MainMiddleware } from './main.middleware';
 import { SimpleScene } from './scene/simple.scene';
 
 @Module({
   imports: [
-    // Необязательно. Используйте только если нужно отключить managers,
-    // передать свои экземпляры managers или вручную управлять порядком middleware.
-    VkModule.forManagers({
-      useSessionManager: false,
-      useSceneManager: false,
-      useHearManager: false,
-    }),
     VkModule.forRootAsync({
       inject: [MainMiddleware],
       useFactory: async (mainMiddleware: MainMiddleware) => ({
@@ -73,41 +166,11 @@ import { SimpleScene } from './scene/simple.scene';
         middlewaresAfter: [mainMiddleware.middlewaresAfter],
       }),
     }),
-    // VkModule.forRoot({
-    //   token: process.env.VK_BOT_TOKEN,
-    //   options: {
-    //     pollingGroupId: +process.env.VK_BOT_GROUP_ID,
-    //     apiMode: 'sequential',
-    //   },
-    // }),
   ],
   providers: [MainMiddleware, AppUpdate, SimpleScene],
   exports: [MainMiddleware],
 })
 export class AppModule {}
-```
-
-`VkModule.forManagers()` не обязателен для стандартного запуска. Без него
-`nestjs-vk` автоматически создаёт и регистрирует `SessionManager`,
-`SceneManager` и `HearManager`.
-
-Используйте `VkModule.forManagers()` только если нужно:
-
-- отключить один из default managers;
-- передать собственный экземпляр manager;
-- перенести manager middleware в `middlewaresBefore` / `middlewaresAfter`;
-- переиспользовать явно настроенные managers через DI.
-
-Для нескольких ботов можно настроить managers конкретного бота через второй
-аргумент `vkName`:
-
-```typescript
-VkModule.forManagers(
-  {
-    useSceneManager: false,
-  },
-  'firstBot',
-);
 ```
 
 Основной middleware `main.middleware.ts`:
@@ -155,7 +218,7 @@ export class MainMiddleware {
 }
 ```
 
-Manager providers также можно инжектить в constructor:
+Manager providers можно инжектить в constructor:
 
 ```typescript
 import {
@@ -180,6 +243,11 @@ export class AppUpdate {
 }
 ```
 
+</details>
+
+<details>
+<summary>Multi-bot и <code>vkName</code></summary>
+
 В multi-bot приложениях передавайте `vkName` в inject decorators, чтобы получить
 manager конкретного бота:
 
@@ -194,7 +262,36 @@ export class AppUpdate {
 }
 ```
 
-Создайте файл `app.update.ts` и добавьте обработчики событий VK Bot API:
+Тот же `vkName` используется внутри модуля для `VkModule.forRoot()` /
+`VkModule.forRootAsync()` и `VkModule.forManagers()`, поэтому настройки managers,
+`include` и остановка VK API применяются к конкретному боту, а не к общему
+default provider.
+
+Важно: `vkName` в inject decorators должен совпадать с `vkName`, переданным в
+`VkModule.forRoot()` / `VkModule.forRootAsync()`. Сам `@Update()` не выбирает
+бота — update provider попадает в конкретного бота через `include`.
+
+```typescript
+VkModule.forRootAsync({
+  vkName: 'firstBot',
+  include: [CommonBotModule],
+});
+
+VkModule.forRootAsync({
+  vkName: 'secondBot',
+  include: [CommonBotModule, SecondBotModule],
+});
+```
+
+В этом примере update providers из `CommonBotModule` будут зарегистрированы в
+оба бота, а update providers из `SecondBotModule` — только во второго.
+
+</details>
+
+<details>
+<summary>Расширенный пример update provider</summary>
+
+Пример `app.update.ts` с несколькими типами обработчиков:
 
 ```typescript
 import {
@@ -290,6 +387,51 @@ export class AppUpdate {
 payload первым аргументом. Если условие не подходит, обработчик передаёт
 управление следующему listener-у, поэтому guards и метод не вызываются.
 
+</details>
+
+<details>
+<summary>Порядок регистрации и обработки</summary>
+
+`@Update()` только помечает class как update provider. К конкретному боту class
+попадает через `include` в `VkModule.forRoot()` / `VkModule.forRootAsync()`.
+
+Во время `onModuleInit` middleware подключаются в таком порядке:
+
+1. `middlewaresBefore`;
+2. `SessionManager.middleware`, если `useSessionManager !== false`;
+3. `SceneManager.middleware` и `SceneManager.middlewareIntercept`, если
+   `useSceneManager !== false`;
+4. listeners из `@Use()`, `@On()` и `@OnMessageEvent()`;
+5. scenes из `@Scene()`;
+6. `HearManager.middleware`, если `useHearManager !== false`;
+7. `middlewaresAfter`.
+
+Практически это означает:
+
+- `@On()` / `@OnMessageEvent()` регистрируются на уровне `vk.updates` раньше,
+  чем подключается `HearManager.middleware`, поэтому они отработают до
+  `@Hears()`;
+- порядок методов с `@On()` внутри class обычно не должен использоваться как
+  бизнес-логика; если listener должен пропустить событие дальше, явно вызывайте
+  `next()`;
+- порядок `@Hears()` имеет значение, потому что обработчики добавляются в
+  `HearManager` в порядке сканирования providers и методов;
+- `@HearFallback()` вызывается средствами `HearManager`, когда подходящий
+  `@Hears()` не обработал событие;
+- `@AddStep()` без аргумента получает порядковый номер по порядку сканирования
+  методов, а `@AddStep(10)` / `@AddStep(20)` задают явный порядок шагов;
+- порядок `include` не сортирует modules: он только фильтрует, какие modules
+  сканировать. Фактический порядок modules/providers берётся из Nest container.
+
+Если порядок критичен, лучше задавать его явно: через `middlewaresBefore` /
+`middlewaresAfter`, через явные номера `@AddStep(step)` или через один
+координирующий listener, который сам вызывает `next()`.
+
+</details>
+
+<details>
+<summary>Пример scene</summary>
+
 Для простой scene создайте файл `simple.scene.ts` и добавьте несколько шагов:
 
 ```typescript
@@ -346,3 +488,5 @@ export class SimpleScene {
   }
 }
 ```
+
+</details>

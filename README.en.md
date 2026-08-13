@@ -38,24 +38,118 @@ $ yarn add nestjs-vk vk-io
 
 ## Usage
 
-Once the installation process is complete, we can import the `VkModule` into the root `AppModule`:
+Once the installation process is complete, import `VkModule` into the root
+`AppModule`:
 
 ```typescript
 import { Module } from '@nestjs/common';
 import { VkModule } from 'nestjs-vk';
 
 import { AppUpdate } from './app.update';
+
+@Module({
+  imports: [
+    VkModule.forRoot({
+      token: process.env.VK_BOT_TOKEN,
+      options: {
+        pollingGroupId: +process.env.VK_BOT_GROUP_ID,
+        apiMode: 'sequential',
+      },
+    }),
+  ],
+  providers: [AppUpdate],
+})
+export class AppModule {}
+```
+
+Create `app.update.ts`:
+
+```typescript
+import { Ctx, Hears, Update } from 'nestjs-vk';
+import { MessageContext } from 'vk-io';
+
+@Update()
+export class AppUpdate {
+  @Hears(/^\/?(start)$/i)
+  async onStartCommand(@Ctx() ctx: MessageContext) {
+    await ctx.reply('Welcome');
+  }
+}
+```
+
+For callback buttons, use `OnMessageEvent`:
+
+```typescript
+import { Ctx, OnMessageEvent, Update } from 'nestjs-vk';
+import { MessageEventContext } from 'vk-io';
+
+@Update()
+export class AppUpdate {
+  @OnMessageEvent({ action: 'open_queue' })
+  async onOpenQueue(@Ctx() ctx: MessageEventContext) {
+    await ctx.answer({ type: 'show_snackbar', text: 'Queue opened' });
+  }
+}
+```
+
+<details>
+<summary>Configuring managers with <code>VkModule.forManagers()</code></summary>
+
+`VkModule.forManagers()` is not required for the default setup. Without it,
+`nestjs-vk` creates and registers `SessionManager`, `SceneManager` and
+`HearManager` automatically.
+
+Use `VkModule.forManagers()` only when you need to:
+
+- disable one of the default managers;
+- pass your own manager instance;
+- disable automatic manager middleware registration and attach it manually in
+  `middlewaresBefore` / `middlewaresAfter`;
+- apply these settings to a specific `vkName`.
+
+For multiple bots, configure managers for a specific bot by passing `vkName` as
+the second argument:
+
+```typescript
+VkModule.forManagers(
+  {
+    useSceneManager: false,
+  },
+  'firstBot',
+);
+```
+
+`forManagers()` does not create a second manager instance on top of `forRoot()`.
+It provides options that `forRoot()` / `forRootAsync()` use when creating and
+attaching managers for that bot. Therefore `@InjectVkHearManager('firstBot')`
+and internal `@Hears()` registration use the same `HearManager`.
+
+An empty `VkModule.forManagers({}, 'firstBot')` call is usually unnecessary: it
+is equivalent to the default behavior. Use it only when you want to make it
+explicit that this bot keeps default manager settings.
+
+If `useSceneManager: false` is set, the module will not attach
+`SceneManager.middleware` and `SceneManager.middlewareIntercept` for that bot.
+In this mode, `ctx.scene.enter(...)` and current scene processing will not work
+for that bot until you attach scene middleware manually.
+
+</details>
+
+<details>
+<summary>Advanced module setup, middleware and manager providers</summary>
+
+Example `AppModule` with `forRootAsync()` and manual middleware order:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { VkModule } from 'nestjs-vk';
+
+import { AppUpdate } from './app.update';
+import { MainMiddleware } from './main.middleware';
 import { SimpleScene } from './scene/simple.scene';
 
 @Module({
   imports: [
-    // Optional. Use it only when you need to disable managers,
-    // provide custom manager instances or control middleware order manually.
-    VkModule.forManagers({
-      useSessionManager: false,
-      useSceneManager: false,
-      useHearManager: false,
-    }),
     VkModule.forRootAsync({
       inject: [MainMiddleware],
       useFactory: async (mainMiddleware: MainMiddleware) => ({
@@ -70,41 +164,11 @@ import { SimpleScene } from './scene/simple.scene';
         middlewaresAfter: [mainMiddleware.middlewaresAfter],
       }),
     }),
-    // VkModule.forRoot({
-    //   token: process.env.VK_BOT_TOKEN,
-    //   options: {
-    //     pollingGroupId: +process.env.VK_BOT_GROUP_ID,
-    //     apiMode: 'sequential',
-    //   },
-    // }),
   ],
   providers: [MainMiddleware, AppUpdate, SimpleScene],
   exports: [MainMiddleware],
 })
 export class AppModule {}
-```
-
-`VkModule.forManagers()` is not required for the default setup. Without it,
-`nestjs-vk` creates and registers `SessionManager`, `SceneManager` and
-`HearManager` automatically.
-
-Use `VkModule.forManagers()` only when you need to:
-
-- disable one of the default managers;
-- pass your own manager instance;
-- move manager middleware into `middlewaresBefore` / `middlewaresAfter`;
-- share the same explicitly configured managers through DI.
-
-For multiple bots, configure managers for a specific bot by passing `vkName` as
-the second argument:
-
-```typescript
-VkModule.forManagers(
-  {
-    useSceneManager: false,
-  },
-  'firstBot',
-);
 ```
 
 Main middleware `main.middleware.ts`:
@@ -152,7 +216,7 @@ export class MainMiddleware {
 }
 ```
 
-Manager providers can also be injected in constructors:
+Manager providers can be injected in constructors:
 
 ```typescript
 import {
@@ -177,6 +241,11 @@ export class AppUpdate {
 }
 ```
 
+</details>
+
+<details>
+<summary>Multi-bot and <code>vkName</code></summary>
+
 In multi-bot applications, pass `vkName` to inject decorators to get the manager
 for a specific bot:
 
@@ -191,7 +260,37 @@ export class AppUpdate {
 }
 ```
 
-Then create `app.update.ts` file and add some decorators for handling VK bot API updates:
+The same `vkName` is used internally by `VkModule.forRoot()` /
+`VkModule.forRootAsync()` and `VkModule.forManagers()`, so manager options,
+`include` and VK API shutdown are applied to a specific bot instead of a shared
+default provider.
+
+Important: `vkName` in inject decorators must match the `vkName` passed to
+`VkModule.forRoot()` / `VkModule.forRootAsync()`. `@Update()` itself does not
+select a bot — an update provider is attached to a bot through `include`.
+
+```typescript
+VkModule.forRootAsync({
+  vkName: 'firstBot',
+  include: [CommonBotModule],
+});
+
+VkModule.forRootAsync({
+  vkName: 'secondBot',
+  include: [CommonBotModule, SecondBotModule],
+});
+```
+
+In this example, update providers from `CommonBotModule` are registered in both
+bots, while update providers from `SecondBotModule` are registered only in the
+second bot.
+
+</details>
+
+<details>
+<summary>Advanced update provider example</summary>
+
+Example `app.update.ts` with several listener types:
 
 ```typescript
 import {
@@ -288,6 +387,50 @@ receive the payload as the first argument. If the condition does not match, the
 handler passes control to the next listener, so guards and the method are not
 called.
 
+</details>
+
+<details>
+<summary>Registration and execution order</summary>
+
+`@Update()` only marks a class as an update provider. A class is attached to a
+specific bot through `include` in `VkModule.forRoot()` /
+`VkModule.forRootAsync()`.
+
+During `onModuleInit`, middleware is attached in this order:
+
+1. `middlewaresBefore`;
+2. `SessionManager.middleware`, if `useSessionManager !== false`;
+3. `SceneManager.middleware` and `SceneManager.middlewareIntercept`, if
+   `useSceneManager !== false`;
+4. listeners from `@Use()`, `@On()` and `@OnMessageEvent()`;
+5. scenes from `@Scene()`;
+6. `HearManager.middleware`, if `useHearManager !== false`;
+7. `middlewaresAfter`.
+
+Practically, this means:
+
+- `@On()` / `@OnMessageEvent()` listeners are registered on `vk.updates` before
+  `HearManager.middleware` is attached, so they run before `@Hears()`;
+- method order for `@On()` inside a class should not be used as business logic;
+  if a listener should pass the event further, call `next()` explicitly;
+- `@Hears()` order matters because handlers are added to `HearManager` in the
+  order providers and methods are scanned;
+- `@HearFallback()` is called by `HearManager` when no matching `@Hears()`
+  handles the event;
+- `@AddStep()` without an argument receives an index based on method scan order,
+  while `@AddStep(10)` / `@AddStep(20)` define explicit scene step order;
+- `include` order does not sort modules: it only filters which modules are
+  scanned. The actual module/provider order comes from the Nest container.
+
+If order is critical, define it explicitly with `middlewaresBefore` /
+`middlewaresAfter`, explicit `@AddStep(step)` numbers, or a single coordinating
+listener that calls `next()` itself.
+
+</details>
+
+<details>
+<summary>Scene example</summary>
+
 For a simple scene, let's create an `simple.scene.ts` file and do a few steps for it:
 
 ```typescript
@@ -344,3 +487,5 @@ export class SimpleScene {
   }
 }
 ```
+
+</details>
