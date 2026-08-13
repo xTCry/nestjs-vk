@@ -5,7 +5,12 @@ const projectDir = path.resolve('.');
 const { name: libraryName } = require('../package.json');
 const sampleRoot = path.resolve('sample');
 
-for (const sample of fs.readdirSync(sampleRoot)) {
+for (const sampleEntry of fs.readdirSync(sampleRoot, { withFileTypes: true })) {
+  if (!sampleEntry.isDirectory()) {
+    continue;
+  }
+
+  const sample = sampleEntry.name;
   const targetDir = path.join(sampleRoot, sample, 'node_modules', libraryName);
   const targetRealDir = fs.existsSync(targetDir)
     ? fs.realpathSync(targetDir)
