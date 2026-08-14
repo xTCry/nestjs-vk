@@ -3,10 +3,9 @@ import 'reflect-metadata';
 import type { NextMiddleware } from 'middleware-io';
 import type { MessageEventContext, Updates } from 'vk-io';
 
-import { OnMessageEvent } from '../lib/decorators/listeners';
+import { Hears, OnMessageEvent } from '../lib/decorators/listeners';
 import { ListenersExplorerService } from '../lib/services';
-import { matchMessageEventPayload } from '../lib/utils';
-import { VK_LISTENERS_METADATA } from '../lib/vk.constants';
+import { ListenerDecorator, matchMessageEventPayload } from '../lib/utils';
 
 describe('OnMessageEvent', () => {
   function getListenerMetadata(
@@ -31,7 +30,7 @@ describe('OnMessageEvent', () => {
       descriptor,
     );
 
-    return Reflect.getMetadata(VK_LISTENERS_METADATA, descriptor.value);
+    return Reflect.getMetadata(ListenerDecorator.KEY, descriptor.value);
   }
 
   it('registers a listener without a payload condition', () => {
@@ -89,7 +88,11 @@ describe('OnMessageEvent', () => {
 
   it('supports predicates for complex payload conditions', async () => {
     const { explorer, updates, handled, next } = createExplorer(
-      (payload) => payload.phrase === 'schedule-notification',
+      (payload) =>
+        typeof payload === 'object' &&
+        payload !== null &&
+        'phrase' in payload &&
+        payload.phrase === 'schedule-notification',
     );
 
     registerListener(explorer, updates);
@@ -185,6 +188,82 @@ describe('OnMessageEvent', () => {
   });
 });
 
+describe('Hears', () => {
+  it('stores additional decorator arguments in listener metadata', () => {
+    class UpdateHandler {
+      hears(): void {}
+    }
+
+    const descriptor = Object.getOwnPropertyDescriptor(
+      UpdateHandler.prototype,
+      'hears',
+    );
+
+    if (!descriptor) {
+      throw new Error('hears descriptor is not defined');
+    }
+
+    const middleware = jest.fn();
+    Hears('/start', middleware)(UpdateHandler.prototype, 'hears', descriptor);
+
+    expect(
+      Reflect.getMetadata(ListenerDecorator.KEY, descriptor.value),
+    ).toEqual([
+      {
+        handlerType: 'hears',
+        method: undefined,
+        event: '/start',
+        args: [middleware],
+      },
+    ]);
+  });
+
+  it('passes additional decorator arguments to HearManager', () => {
+    const handled = jest.fn();
+    const hear = jest.fn();
+    const explorer = Object.create(
+      ListenersExplorerService.prototype,
+    ) as ListenersExplorerService;
+
+    Object.assign(explorer, {
+      vkOptions: {},
+      reflector: {
+        get: () => undefined,
+      },
+      hearManagerProvider: { hear },
+      getMergedReplyOptions: () => ({}),
+      createContextCallback: () => handled,
+    });
+
+    const middleware = jest.fn();
+
+    (
+      explorer as unknown as {
+        registerIfListener: (
+          updates: Updates,
+          instance: object,
+          prototype: object,
+          methodName: string,
+          defaultMetadata?: unknown[],
+        ) => void;
+      }
+    ).registerIfListener({} as Updates, {}, { hears(): void {} }, 'hears', [
+      {
+        handlerType: 'hears',
+        method: undefined,
+        event: '/start',
+        args: [middleware],
+      },
+    ]);
+
+    expect(hear).toHaveBeenCalledWith(
+      '/start',
+      middleware,
+      expect.any(Function),
+    );
+  });
+});
+
 function createExplorer(condition: Parameters<typeof OnMessageEvent>[0]) {
   const handled = jest.fn();
   const next = jest.fn();
@@ -212,16 +291,12 @@ function createExplorer(condition: Parameters<typeof OnMessageEvent>[0]) {
   ) as ListenersExplorerService;
 
   Object.assign(explorer, {
+    condition,
     vkOptions: {},
-    metadataAccessor: {
-      getListenerMetadata: () => [
-        {
-          handlerType: 'message_event',
-          event: condition,
-          args: [],
-        },
-      ],
+    reflector: {
+      get: () => undefined,
     },
+    getMergedReplyOptions: () => ({}),
     createContextCallback: () => handled,
   });
 
@@ -247,6 +322,7 @@ function registerListener(
         instance: object,
         prototype: object,
         methodName: string,
+        defaultMetadata?: unknown[],
       ) => void;
     }
   ).registerIfListener(
@@ -254,6 +330,13 @@ function registerListener(
     {},
     { onMessageEvent(): void {} },
     'onMessageEvent',
+    [
+      {
+        handlerType: 'message_event',
+        event: (explorer as unknown as { condition?: unknown }).condition,
+        args: [],
+      },
+    ],
   );
 }
 

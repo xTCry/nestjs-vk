@@ -41,7 +41,6 @@
     "@vk-io/hear": "^1.1.0",
     "@vk-io/scenes": "^1.2.0",
     "@vk-io/session": "^2.2.0",
-    "lodash": "^4.17.21",
     "rimraf": "^6.1.2"
   },
   "devDependencies": {

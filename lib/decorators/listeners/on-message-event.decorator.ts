@@ -1,27 +1,21 @@
 import type { MessageEventContext } from 'vk-io';
 
-import { createListenerDecorator } from '../../utils';
+import type {
+  VkMessageEventCondition,
+  VkMessageEventPayload,
+  VkMessageEventPayloadValue,
+} from '../../types';
+import { ListenerDecorator } from '../../utils';
 
 /** Payload callback-события VK `message_event`. */
-export interface MessageEventPayload {
-  [key: string]: MessageEventPayloadValue;
-}
+export type MessageEventPayload = VkMessageEventPayload;
 
 /** Условие одного поля payload callback-события VK. */
-export type MessageEventPayloadValue =
-  | string
-  | number
-  | boolean
-  | null
-  | RegExp
-  | MessageEventPayload;
+export type MessageEventPayloadValue = VkMessageEventPayloadValue;
 
 /** Условие, которому должен удовлетворять payload callback-события VK. */
 export type MessageEventCondition =
-  | string
-  | RegExp
-  | Record<string, MessageEventPayloadValue>
-  | ((payload: MessageEventPayload, ctx: MessageEventContext) => boolean);
+  VkMessageEventCondition<MessageEventPayload>;
 
 /** Контекст `message_event` с результатом сопоставления строкового payload. */
 export type MessageEventContextWithMatch = MessageEventContext & {
@@ -29,5 +23,9 @@ export type MessageEventContextWithMatch = MessageEventContext & {
 };
 
 /** Обрабатывает `message_event` и, при наличии условия, фильтрует event payload. */
-export const OnMessageEvent =
-  createListenerDecorator<MessageEventCondition>('message_event');
+export const VkOnMessageEvent = ListenerDecorator('message_event');
+
+/**
+ * Alias for {@link VkOnMessageEvent}
+ */
+export const OnMessageEvent = VkOnMessageEvent;

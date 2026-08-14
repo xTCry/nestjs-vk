@@ -20,7 +20,7 @@ import {
   sceneManagerProvider,
   sessionManagerProvider,
 } from './providers';
-import { ListenersExplorerService, MetadataAccessorService } from './services';
+import { ListenersExplorerService } from './services';
 import { createVkApiFactory, getVkApiToken } from './utils';
 import { VK_API_NAME, VK_MODULE_OPTIONS } from './vk.constants';
 
@@ -33,7 +33,7 @@ const defaultManagerProviders: Provider[] = [
 @Global()
 @Module({
   imports: [DiscoveryModule],
-  providers: [ListenersExplorerService, MetadataAccessorService],
+  providers: [ListenersExplorerService],
 })
 export class VkCoreModule implements OnApplicationShutdown {
   constructor(

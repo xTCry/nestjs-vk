@@ -2,7 +2,7 @@ import { ParamData } from '@nestjs/common';
 import { ParamsFactory } from '@nestjs/core/helpers/external-context-creator';
 import { Context } from 'vk-io';
 
-import { VkParamtype } from '../enums/vk-paramtype.enum';
+import { VkParamtype } from './vk-paramtype.enum';
 
 export class VkParamsFactory implements ParamsFactory {
   exchangeKeyForValue(
@@ -10,6 +10,8 @@ export class VkParamsFactory implements ParamsFactory {
     data: ParamData,
     args: unknown[],
   ): unknown {
+    if (!args) return null;
+
     const [ctx, next] = args as [Context, Function];
 
     switch (type) {
