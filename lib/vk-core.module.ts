@@ -206,6 +206,11 @@ export class VkCoreModule {
       return [this.createAsyncOptionsProvider(options)];
     }
     const useClass = options.useClass;
+
+    if (!useClass) {
+      return [this.createAsyncOptionsProvider(options)];
+    }
+
     return [
       this.createAsyncOptionsProvider(options),
       {
@@ -229,7 +234,9 @@ export class VkCoreModule {
     }
 
     // `as Type<VkOptionsFactory>` is a workaround for microsoft/TypeScript#31603
-    const inject = [options.useClass || options.useExisting];
+    const inject = [
+      options.useClass ?? options.useExisting,
+    ] as Type<VkOptionsFactory>[];
     return {
       provide: optionsToken,
       useFactory: async (optionsFactory: VkOptionsFactory) =>

@@ -42,6 +42,10 @@ export function createAppendDecorator<TParam, TTransformed = TParam>(
   const decoratorFn =
     (metadataValue: TParam) =>
     (target: object | Function, key?: string | symbol, descriptor?: any) => {
+      if (key === undefined) {
+        return;
+      }
+
       const value = options.transform
         ? options.transform(metadataValue)
         : metadataValue;

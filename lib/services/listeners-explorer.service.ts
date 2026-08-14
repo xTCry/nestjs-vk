@@ -5,7 +5,7 @@ import { ParamMetadata } from '@nestjs/core/helpers/interfaces';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Module } from '@nestjs/core/injector/module';
 import { MetadataScanner } from '@nestjs/core/metadata-scanner';
-import { Middleware as MiddlewareFn } from 'middleware-io';
+import { Middleware as MiddlewareFn, NextMiddleware } from 'middleware-io';
 import { Composer, Context, MessageContext, Updates, VK } from 'vk-io';
 import { AllowArray } from 'vk-io/lib/types';
 import { HearManager } from '@vk-io/hear';
@@ -27,6 +27,7 @@ import {
   ListenerDecorator,
   matchMessageEventPayload,
 } from '../utils';
+import type { VkListenerResult } from '../utils/apply-listener-result.util';
 import {
   PARAM_ARGS_METADATA,
   VK_API_NAME,
@@ -40,7 +41,8 @@ import {
 @Injectable()
 export class ListenersExplorerService implements OnModuleInit {
   private readonly vkParamsFactory = new VkParamsFactory();
-  private vk: VK;
+  private vk!: VK;
+  private readonly vkManagersOptions: VkManagersOptions;
 
   constructor(
     private readonly reflector: Reflector,
@@ -62,11 +64,11 @@ export class ListenersExplorerService implements OnModuleInit {
     private readonly vkOptions: VkModuleOptions,
     @Optional()
     @Inject(VK_MANAGERS_OPTIONS)
-    private readonly vkManagersOptions: VkManagersOptions | undefined,
+    vkManagersOptions: VkManagersOptions | undefined,
     @Inject(VK_API_NAME)
     private readonly vkName: string,
   ) {
-    this.vkManagersOptions ??= {};
+    this.vkManagersOptions = vkManagersOptions ?? {};
     this.hearManagerProvider ??= new HearManager();
     this.sessionManagerProvider ??= new SessionManager();
     this.sceneManager ??= new SceneManager();
@@ -147,7 +149,10 @@ export class ListenersExplorerService implements OnModuleInit {
 
   flatMap<T>(
     modules: Module[],
-    callback: (wrapper: InstanceWrapper, moduleRef: Module) => T | T[],
+    callback: (
+      wrapper: InstanceWrapper,
+      moduleRef: Module,
+    ) => T | T[] | undefined | null | false,
   ) {
     return modules
       .map((moduleRef) =>
@@ -181,6 +186,10 @@ export class ListenersExplorerService implements OnModuleInit {
         Scene,
         wrapper.instance.constructor,
       );
+
+      if (!sceneId) {
+        continue;
+      }
 
       this.registerSceneSteps(sceneId, wrapper);
     }
@@ -238,7 +247,7 @@ export class ListenersExplorerService implements OnModuleInit {
             instance,
             e.methodName,
           );
-          return listenerCallbackFn;
+          return listenerCallbackFn!;
         }),
     });
     this.sceneManager.addScenes([scene]);
@@ -276,11 +285,19 @@ export class ListenersExplorerService implements OnModuleInit {
       return undefined;
     }
 
+    type ListenerCallback = (
+      ctx: Context,
+      next: NextMiddleware,
+    ) => Promise<VkListenerResult> | VkListenerResult;
     type MwFn = MiddlewareFn<Context> & { displayName: string };
     const listenerCallbackFn = this.createContextCallback(
       instance,
       methodName,
-    ) as MwFn | undefined;
+    ) as ListenerCallback | undefined;
+
+    if (!listenerCallbackFn) {
+      return undefined;
+    }
 
     replyOptions.replyTo ??= !this.vkOptions.notReplyMessage;
 
@@ -315,11 +332,7 @@ export class ListenersExplorerService implements OnModuleInit {
                 event: VkHearsCondition,
                 ...handlers: MiddlewareFn<MessageContext>[]
               ) => HearManager<MessageContext>
-            )(
-              event as VkHearsCondition,
-              ...(args as MiddlewareFn<MessageContext>[]),
-              fn,
-            );
+            )(event, ...(args as MiddlewareFn<MessageContext>[]), fn);
           }
           break;
         }

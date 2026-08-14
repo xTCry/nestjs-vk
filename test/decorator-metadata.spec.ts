@@ -60,12 +60,14 @@ describe('reflectable decorators', () => {
 function getMethodDescriptor(
   target: object,
   methodName: string,
-): TypedPropertyDescriptor<() => void> {
+): TypedPropertyDescriptor<() => void> & { value: () => void } {
   const descriptor = Object.getOwnPropertyDescriptor(target, methodName);
 
-  if (!descriptor) {
+  if (!descriptor?.value) {
     throw new Error(`${methodName} descriptor is not defined`);
   }
 
-  return descriptor;
+  return descriptor as TypedPropertyDescriptor<() => void> & {
+    value: () => void;
+  };
 }
