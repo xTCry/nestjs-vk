@@ -5,12 +5,14 @@ import {
   Hears,
   InjectVkApi,
   Message,
+  MessageEventContextWithMatch,
   Next,
   On,
+  OnMessageEvent,
   Update,
 } from 'nestjs-vk';
 import { NextMiddleware } from 'middleware-io';
-import { MessageContext, VK } from 'vk-io';
+import { Keyboard, MessageContext, MessageEventContext, VK } from 'vk-io';
 
 import { AdminGuard, ReverseTextPipe, VkExceptionFilter } from '../common';
 import { Context } from '../interfaces/context.interface';
@@ -65,16 +67,57 @@ export class EchoUpdate {
   }
 
   @Hears(/^\/?(start|старт)$/i)
-  async onStartCommand(@Next() next: NextMiddleware) {
+  async onStartCommand(
+    @Ctx() ctx: MessageContext,
+    @Next() next: NextMiddleware,
+  ) {
+    const code = Math.random().toString(32).slice(-6);
+    const state = 'wait';
+    await ctx.send(`Press callback button [code=${code}]`, {
+      keyboard: Keyboard.builder()
+        .callbackButton({
+          label: 'Request auth',
+          payload: `request_auth:${code}:${state}`,
+          color: Keyboard.PRIMARY_COLOR,
+        })
+        .callbackButton({
+          label: 'Check fav',
+          payload: { check: 'fav' },
+          color: Keyboard.SECONDARY_COLOR,
+        })
+        .callbackButton({
+          label: 'nope listener',
+          payload: {},
+          color: Keyboard.NEGATIVE_COLOR,
+        })
+        .inline(),
+    });
     /* for test */ next();
     return `Hey`;
   }
 
+  @OnMessageEvent(/^request_auth:(?<code>.*):(?<state>.*)/)
+  async onMessageEventRequestAuth(@Ctx() ctx: MessageEventContextWithMatch) {
+    const { code, state } = ctx.$match?.groups ?? {};
+
+    if (!code || !state) {
+      return;
+    }
+
+    await ctx.answer({
+      type: 'show_snackbar',
+      text: `Callback payload parsed: ${code}/${state}`,
+    });
+  }
+
+  @OnMessageEvent({ check: 'fav' })
   @Hears(['/sub', 'чек'])
-  async onSubscriberCommand(@Ctx() ctx: MessageContext) {
+  async onSubscriberCommand(
+    @Ctx() ctx: MessageContext | MessageEventContextWithMatch,
+  ) {
     const isSib = await this.bot.api.groups.isMember({
       group_id: String(this.groupId),
-      user_id: ctx.senderId,
+      user_id: ctx.senderId || ctx.userId,
     });
     return isSib ? 'So good!' : 'No sub';
   }
@@ -87,14 +130,21 @@ export class EchoUpdate {
 
   @HearFallback()
   onHearFallback(
-    @Ctx() ctx: MessageContext,
+    @Ctx() ctx: MessageContext | MessageEventContextWithMatch,
     @Message('text', new ReverseTextPipe()) reversedText: string,
   ) {
-    if (reversedText) {
-      return this.echoService.echo(reversedText);
-    } else if (ctx.hasAttachments('sticker')) {
-      ctx.send({ sticker_id: ctx.getAttachments('sticker')[0].id % 24 });
+    if (ctx instanceof MessageEventContext) {
+      ctx.answer({ type: 'show_snackbar', text: 'Nope' });
       return;
+    }
+
+    if (ctx.is(['message'])) {
+      if (reversedText) {
+        return this.echoService.echo(reversedText);
+      } else if (ctx.hasAttachments('sticker')) {
+        ctx.send({ sticker_id: ctx.getAttachments('sticker')[0].id % 24 });
+        return;
+      }
     }
 
     return 'What?..';

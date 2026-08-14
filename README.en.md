@@ -315,6 +315,7 @@ import {
   Hears,
   InjectVkApi,
   Message,
+  MessageEventContextWithMatch,
   OnMessageEvent,
   Update,
 } from 'nestjs-vk';
@@ -355,6 +356,17 @@ export class AppUpdate {
   @OnMessageEvent({ broadcastAction: 'queue' })
   async onQueueAction(@Ctx() ctx: MessageEventContext) {
     await ctx.answer({ type: 'show_snackbar', text: 'Queue opened' });
+  }
+
+  @OnMessageEvent(/^request_auth:(?<code>.*):(?<state>.*)/)
+  async onRequestAuth(@Ctx() ctx: MessageEventContextWithMatch) {
+    const { code, state } = ctx.$match?.groups ?? {};
+
+    if (!code || !state) {
+      return;
+    }
+
+    await ctx.answer({ type: 'show_snackbar', text: 'Authorization received' });
   }
 
   @OnMessageEvent(
@@ -399,9 +411,15 @@ export class AppUpdate {
 
 `OnMessageEvent` registers a callback event handler for `message_event`.
 Object conditions are matched against `ctx.eventPayload`, and predicates
-receive the payload as the first argument. If the condition does not match, the
-handler passes control to the next listener, so guards and the method are not
-called.
+receive the payload as the first argument.
+
+For string `ctx.eventPayload`, you can pass a string or `RegExp`. The condition
+is checked through `String.match()`, and the match result is stored in
+`ctx.$match`, the same way as with `Hears`. This allows using named groups in
+the handler.
+
+If the condition does not match, the handler passes control to the next listener,
+so guards and the method are not called.
 
 </details>
 

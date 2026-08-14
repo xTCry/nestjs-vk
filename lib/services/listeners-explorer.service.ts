@@ -6,7 +6,14 @@ import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Module } from '@nestjs/core/injector/module';
 import { MetadataScanner } from '@nestjs/core/metadata-scanner';
 import { NextMiddleware } from 'middleware-io';
-import { Composer, Context, MessageContext, Updates, VK } from 'vk-io';
+import {
+  Composer,
+  Context,
+  MessageContext,
+  MessageEventContext,
+  Updates,
+  VK,
+} from 'vk-io';
 import { AllowArray } from 'vk-io/lib/types';
 import { HearManager } from '@vk-io/hear';
 import { SceneManager, StepScene } from '@vk-io/scenes';
@@ -254,6 +261,17 @@ export class ListenersExplorerService
                     await ctx.send(result);
                   } else {
                     await ctx.reply(result);
+                  }
+                }
+                break;
+              }
+              case ctx.is(['message_event']): {
+                const ctxEv = ctx as MessageEventContext;
+                if (typeof result === 'string' || typeof result === 'object') {
+                  if (typeof result === 'string') {
+                    await ctxEv.answer({ type: 'show_snackbar', text: result });
+                  } else {
+                    await ctxEv.answer(result);
                   }
                 }
                 break;
