@@ -142,6 +142,80 @@ describe('VkModule', () => {
     await moduleRef.close();
   });
 
+  it('disables all managers when forManagers receives false', async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        VkModule.forManagers(false),
+        VkModule.forRoot({ token: 'test-token', launchOptions: false }),
+      ],
+    }).compile();
+
+    await moduleRef.init();
+
+    const explorer = moduleRef.get(ListenersExplorerService);
+    const internals = explorer as unknown as {
+      vkManagersOptions: unknown;
+      sessionManagerProvider: SessionManager;
+      sceneManager: SceneManager;
+      hearManagerProvider: HearManager<MessageContext>;
+    };
+    const vk = moduleRef.get<{ updates: { use: jest.Mock } }>(getVkApiToken(), {
+      strict: false,
+    });
+
+    expect(internals.vkManagersOptions).toEqual({
+      useSessionManager: false,
+      useSceneManager: false,
+      useHearManager: false,
+    });
+    expect(vk.updates.use).not.toHaveBeenCalledWith(
+      internals.sessionManagerProvider.middleware,
+    );
+    expect(vk.updates.use).not.toHaveBeenCalledWith(
+      internals.sceneManager.middleware,
+    );
+    expect(vk.updates.use).not.toHaveBeenCalledWith(
+      internals.sceneManager.middlewareIntercept,
+    );
+    expect(vk.updates.use).not.toHaveBeenCalledWith(
+      internals.hearManagerProvider.middleware,
+    );
+
+    await moduleRef.close();
+  });
+
+  it('disables all managers for a named bot when named forManagers receives false', async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        VkModule.forManagers(false, 'secondBot'),
+        VkModule.forRoot({
+          vkName: 'secondBot',
+          token: 'test-token',
+          launchOptions: false,
+        }),
+      ],
+    }).compile();
+
+    const explorer = moduleRef.get<{
+      vkManagersOptions: unknown;
+    }>(getVkListenersExplorerToken('secondBot'), { strict: false });
+
+    expect(explorer.vkManagersOptions).toEqual({
+      useSessionManager: false,
+      useSceneManager: false,
+      useHearManager: false,
+    });
+    expect(
+      moduleRef.get(getVkManagersOptionsToken('secondBot'), { strict: false }),
+    ).toEqual({
+      useSessionManager: false,
+      useSceneManager: false,
+      useHearManager: false,
+    });
+
+    await moduleRef.close();
+  });
+
   it('exports default managers for application providers without forManagers', async () => {
     @Injectable()
     class BotUpdateWithManagers {

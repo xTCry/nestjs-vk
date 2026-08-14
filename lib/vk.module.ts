@@ -2,6 +2,7 @@ import { DynamicModule, Module } from '@nestjs/common';
 
 import {
   VkManagersOptions,
+  VkManagersOptionsInput,
   VkModuleAsyncOptions,
   VkModuleOptions,
 } from './interfaces';
@@ -18,11 +19,14 @@ export class VkModule {
   }
 
   public static forManagers(
-    options: VkManagersOptions,
+    options: VkManagersOptionsInput,
     vkName?: string,
   ): DynamicModule {
     const providers = [
-      { provide: getVkManagersOptionsToken(vkName), useValue: options },
+      {
+        provide: getVkManagersOptionsToken(vkName),
+        useValue: this.normalizeManagersOptions(options),
+      },
     ];
 
     return {
@@ -37,6 +41,20 @@ export class VkModule {
     return {
       module: VkModule,
       imports: [VkCoreModule.forRootAsync(options)],
+    };
+  }
+
+  private static normalizeManagersOptions(
+    options: VkManagersOptionsInput,
+  ): VkManagersOptions {
+    if (options !== false) {
+      return options;
+    }
+
+    return {
+      useSessionManager: false,
+      useSceneManager: false,
+      useHearManager: false,
     };
   }
 }

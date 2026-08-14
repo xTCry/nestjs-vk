@@ -12,6 +12,8 @@ export interface VkManagersOptions {
   useHearManager?: boolean | HearManager<MessageContext>;
 }
 
+export type VkManagersOptionsInput = false | VkManagersOptions;
+
 export interface VkModuleOptions {
   token: string;
   vkName?: string;

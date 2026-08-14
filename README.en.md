@@ -102,10 +102,17 @@ export class AppUpdate {
 Use `VkModule.forManagers()` only when you need to:
 
 - disable one of the default managers;
+- disable all default managers with a single `false` value;
 - pass your own manager instance;
 - disable automatic manager middleware registration and attach it manually in
   `middlewaresBefore` / `middlewaresAfter`;
 - apply these settings to a specific `vkName`.
+
+To disable `SessionManager`, `SceneManager` and `HearManager` at once:
+
+```typescript
+VkModule.forManagers(false);
+```
 
 For multiple bots, configure managers for a specific bot by passing `vkName` as
 the second argument:
@@ -117,6 +124,12 @@ VkModule.forManagers(
   },
   'firstBot',
 );
+```
+
+For a named bot, it works the same way:
+
+```typescript
+VkModule.forManagers(false, 'firstBot');
 ```
 
 `forManagers()` does not create a second manager instance on top of `forRoot()`.
