@@ -1,5 +1,11 @@
 import { SetMetadata } from '@nestjs/common';
 
-import { VK_SCENE_ACTION_METADATA } from '../../vk.constants';
+export const VK_SCENE_LEAVE_METADATA = 'VK_SCENE_LEAVE_METADATA';
 
-export const SceneLeave = () => SetMetadata(VK_SCENE_ACTION_METADATA, 'leave');
+export const VkSceneLeave = () => SetMetadata(VK_SCENE_LEAVE_METADATA, 'leave');
+VkSceneLeave.KEY = VK_SCENE_LEAVE_METADATA;
+
+/**
+ * Alias for {@link VkSceneLeave}
+ */
+export const SceneLeave = VkSceneLeave;

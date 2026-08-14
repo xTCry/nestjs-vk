@@ -1,9 +1,8 @@
-import { Middleware } from 'middleware-io';
-import { Context, ContextSubTypes, ContextTypes } from 'vk-io';
+import { ListenerDecorator } from '../../utils';
 
-import { createListenerDecorator } from '../../utils';
+export const VkOn = ListenerDecorator('vk_updates', 'on');
 
-export const On = createListenerDecorator<
-  ContextTypes | ContextSubTypes,
-  Middleware<Context>
->('vk_updates', 'on');
+/**
+ * Alias for {@link VkOn}
+ */
+export const On = VkOn;

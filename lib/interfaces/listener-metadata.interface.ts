@@ -1,8 +1,10 @@
-import { HandlerType } from '../types';
+import type {
+  VkHearsListenerMetadata,
+  VkMessageEventListenerMetadata,
+  VkUpdatesListenerMetadata,
+} from '../types';
 
-export interface ListenerMetadata {
-  handlerType: HandlerType;
-  method?: string;
-  event: any;
-  args: unknown[];
-}
+export type ListenerMetadata =
+  | VkUpdatesListenerMetadata
+  | VkHearsListenerMetadata
+  | VkMessageEventListenerMetadata;

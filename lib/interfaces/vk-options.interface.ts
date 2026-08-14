@@ -16,13 +16,31 @@ export type VkManagersOptionsInput = false | VkManagersOptions;
 
 export interface VkModuleOptions {
   token: string;
-  vkName?: string;
   options?: Partial<VKOptions>;
-  launchOptions?: { webhook?: IWebhookTransportStartOptions } | false;
-  include?: Function[];
+
+  /**
+   * Vk name for provider
+   */
+  vkName?: string;
+
   middlewaresBefore?: ReadonlyArray<Middleware<any>>;
   middlewaresAfter?: ReadonlyArray<Middleware<any>>;
+
+  replyOptions?: IVkReplyOptions;
+  /** @deprecated Instead use `{ replyOptions: { replyTo: false } }` */
   notReplyMessage?: boolean;
+
+  /**
+   * Launch options
+   *
+   * If `false`, the bot will not be launched.
+   */
+  launchOptions?: { webhook?: IWebhookTransportStartOptions } | false;
+
+  /**
+   * List of modules to include (whitelist) into the discovery process.
+   */
+  include?: Function[];
 }
 
 export interface VkOptionsFactory {
@@ -36,3 +54,8 @@ export interface VkModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
   useFactory?: (...args: any[]) => Promise<VkModuleOptions> | VkModuleOptions;
   inject?: any[];
 }
+
+export type IVkReplyOptions = {
+  replyTo?: boolean;
+  // markup?: 'html' | 'markdown';
+};

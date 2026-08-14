@@ -1,9 +1,14 @@
-import { HearConditions } from '@vk-io/hear';
+import { ListenerDecorator } from '../../utils';
 
-import { createListenerDecorator } from '../../utils';
+export const VkHears = ListenerDecorator('hears');
+export const VkHearFallback = ListenerDecorator('hears', 'onFallback');
 
-export const Hears = createListenerDecorator<HearConditions<any>>('hears');
-export const HearFallback = createListenerDecorator<never, never>(
-  'hears',
-  'onFallback',
-);
+/**
+ * Alias for {@link VkHears}
+ */
+export const Hears = VkHears;
+
+/**
+ * Alias for {@link VkHearFallback}
+ */
+export const HearFallback = VkHearFallback;

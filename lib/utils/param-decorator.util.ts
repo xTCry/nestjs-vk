@@ -1,7 +1,7 @@
 import { assignMetadata, PipeTransform, Type } from '@nestjs/common';
 import { isNil, isString } from '@nestjs/common/utils/shared.utils';
 
-import { VkParamtype } from '../enums/vk-paramtype.enum';
+import { VkParamtype } from '../execution-context';
 import { PARAM_ARGS_METADATA } from '../vk.constants';
 
 export type ParamData = object | string | number;

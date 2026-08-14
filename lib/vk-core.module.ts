@@ -13,6 +13,7 @@ import {
   MetadataScanner,
   ModuleRef,
   ModulesContainer,
+  Reflector,
 } from '@nestjs/core';
 import { VK } from 'vk-io';
 
@@ -27,7 +28,7 @@ import {
   createSceneManagerProvider,
   createSessionManagerProvider,
 } from './providers';
-import { ListenersExplorerService, MetadataAccessorService } from './services';
+import { ListenersExplorerService } from './services';
 import {
   createVkApiFactory,
   getVkApiNameToken,
@@ -56,43 +57,43 @@ const createManagerProviders = (vkName?: string): Provider[] => {
 const createListenersExplorerProvider = (vkName?: string): FactoryProvider => ({
   provide: getVkListenersExplorerToken(vkName),
   useFactory: (
+    reflector: Reflector,
+    moduleRef: ModuleRef,
+    metadataScanner: MetadataScanner,
+    modulesContainer: ModulesContainer,
+    externalContextCreator: ExternalContextCreator,
     hearManagerProvider,
     sessionManagerProvider,
     sceneManager,
     vkOptions: VkModuleOptions,
     vkManagersOptions: VkManagersOptions | undefined,
     vkApiName: string,
-    moduleRef: ModuleRef,
-    metadataAccessor: MetadataAccessorService,
-    metadataScanner: MetadataScanner,
-    modulesContainer: ModulesContainer,
-    externalContextCreator: ExternalContextCreator,
   ) =>
     new ListenersExplorerService(
+      reflector,
+      moduleRef,
+      metadataScanner,
+      modulesContainer,
+      externalContextCreator,
       hearManagerProvider,
       sessionManagerProvider,
       sceneManager,
       vkOptions,
       vkManagersOptions,
       vkApiName,
-      moduleRef,
-      metadataAccessor,
-      metadataScanner,
-      modulesContainer,
-      externalContextCreator,
     ),
   inject: [
+    Reflector,
+    ModuleRef,
+    MetadataScanner,
+    ModulesContainer,
+    ExternalContextCreator,
     { token: getVkHearManagerToken(vkName), optional: true },
     { token: getVkSessionManagerToken(vkName), optional: true },
     { token: getVkSceneManagerToken(vkName), optional: true },
     getVkModuleOptionsToken(vkName),
     { token: getVkManagersOptionsToken(vkName), optional: true },
     getVkApiNameToken(vkName),
-    ModuleRef,
-    MetadataAccessorService,
-    MetadataScanner,
-    ModulesContainer,
-    ExternalContextCreator,
   ],
 });
 
@@ -127,7 +128,7 @@ const createDefaultCompatibilityProviders = (vkName?: string): Provider[] => {
 @Global()
 @Module({
   imports: [DiscoveryModule],
-  providers: [MetadataAccessorService],
+  providers: [],
 })
 export class VkCoreModule {
   public static forRoot(options: VkModuleOptions): DynamicModule {

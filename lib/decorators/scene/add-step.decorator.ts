@@ -1,6 +1,12 @@
 import { SetMetadata } from '@nestjs/common';
 
-import { VK_SCENE_STEP_METADATA } from '../../vk.constants';
+export const VK_SCENE_STEP_METADATA = 'VK_SCENE_STEP_METADATA';
 
-export const AddStep = (step?: number) =>
+export const VkAddStep = (step?: number) =>
   SetMetadata<string>(VK_SCENE_STEP_METADATA, step);
+VkAddStep.KEY = VK_SCENE_STEP_METADATA;
+
+/**
+ * Alias for {@link VkAddStep}
+ */
+export const AddStep = VkAddStep;

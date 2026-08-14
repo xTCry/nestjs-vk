@@ -1,31 +1,56 @@
-import { ListenerMetadata } from '../interfaces';
-import { HandlerType } from '../types';
-import { VK_LISTENERS_METADATA } from '../vk.constants';
+import type { ListenerMetadata } from '../interfaces';
+import type {
+  HandlerType,
+  VkHearsListenerArgs,
+  VkMessageEventListenerArgs,
+  VkUpdatesListenerArgs,
+  VkUseListenerArgs,
+} from '../types';
+import { createAppendDecorator } from '.';
 
-export function createListenerDecorator<E = any, A = any>(
-  handlerType: HandlerType,
-  method?: string,
-) {
-  return (event?: E, ...args: A[]): MethodDecorator => {
-    return (
-      _target: any,
-      _key?: string | symbol,
-      descriptor?: TypedPropertyDescriptor<any>,
-    ) => {
-      const metadata: ListenerMetadata[] = [
-        {
-          handlerType,
-          method,
-          event,
-          args,
-        },
-      ];
+export const VK_LISTENERS_METADATA = 'VK_LISTENERS_METADATA';
 
-      const previousValue =
-        Reflect.getMetadata(VK_LISTENERS_METADATA, descriptor.value) || [];
-      const value = [...previousValue, ...metadata];
-      Reflect.defineMetadata(VK_LISTENERS_METADATA, value, descriptor.value);
-      return descriptor;
-    };
-  };
-}
+type VkUpdatesListenerDecoratorFactory = (
+  handlerType: 'vk_updates',
+  method: 'on',
+) => (...args: VkUpdatesListenerArgs) => MethodDecorator;
+
+type VkUseListenerDecoratorFactory = (
+  handlerType: 'vk_updates',
+  method: 'use',
+) => (...args: VkUseListenerArgs) => MethodDecorator;
+
+type VkHearsListenerDecoratorFactory = (
+  handlerType: 'hears',
+) => (...args: VkHearsListenerArgs) => MethodDecorator;
+
+type VkHearFallbackListenerDecoratorFactory = (
+  handlerType: 'hears',
+  method: 'onFallback',
+) => (...args: VkUseListenerArgs) => MethodDecorator;
+
+type VkMessageEventListenerDecoratorFactory = (
+  handlerType: 'message_event',
+) => (...args: VkMessageEventListenerArgs) => MethodDecorator;
+
+export type ListenerDecoratorFactory = VkUpdatesListenerDecoratorFactory &
+  VkUseListenerDecoratorFactory &
+  VkHearsListenerDecoratorFactory &
+  VkHearFallbackListenerDecoratorFactory &
+  VkMessageEventListenerDecoratorFactory;
+
+export const ListenerDecorator: ListenerDecoratorFactory & { KEY: string } = ((
+    handlerType: HandlerType,
+    method?: string,
+  ) =>
+  (event?: unknown, ...args: unknown[]) =>
+    createAppendDecorator<ListenerMetadata>({ key: VK_LISTENERS_METADATA })({
+      handlerType,
+      method,
+      event,
+      args,
+    } as ListenerMetadata)) as unknown as ListenerDecoratorFactory & {
+  KEY: string;
+};
+
+ListenerDecorator.KEY = VK_LISTENERS_METADATA;

@@ -1,28 +1,32 @@
 import { Inject, Injectable, OnModuleInit, Optional } from '@nestjs/common';
-import { ModuleRef, ModulesContainer } from '@nestjs/core';
+import { ModuleRef, ModulesContainer, Reflector } from '@nestjs/core';
 import { ExternalContextCreator } from '@nestjs/core/helpers/external-context-creator';
 import { ParamMetadata } from '@nestjs/core/helpers/interfaces';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Module } from '@nestjs/core/injector/module';
 import { MetadataScanner } from '@nestjs/core/metadata-scanner';
-import { NextMiddleware } from 'middleware-io';
-import {
-  Composer,
-  Context,
-  MessageContext,
-  MessageEventContext,
-  Updates,
-  VK,
-} from 'vk-io';
+import { Middleware as MiddlewareFn } from 'middleware-io';
+import { Composer, Context, MessageContext, Updates, VK } from 'vk-io';
 import { AllowArray } from 'vk-io/lib/types';
 import { HearManager } from '@vk-io/hear';
 import { SceneManager, StepScene } from '@vk-io/scenes';
 import { SessionManager } from '@vk-io/session';
 
-import { VkontextType } from '../execution-context';
-import { VkParamsFactory } from '../factories/vk-params-factory';
-import { VkManagersOptions, VkModuleOptions } from '../interfaces';
-import { matchMessageEventPayload } from '../utils';
+import { Scene, VkReplyOptions, VkUpdate } from '../decorators';
+import { AddStep, SceneEnter, SceneLeave } from '../decorators/scene';
+import { VkContextType, VkParamsFactory } from '../execution-context';
+import {
+  IVkReplyOptions,
+  ListenerMetadata,
+  VkManagersOptions,
+  VkModuleOptions,
+} from '../interfaces';
+import type { VkHearsCondition } from '../types';
+import {
+  applyListenerResult,
+  ListenerDecorator,
+  matchMessageEventPayload,
+} from '../utils';
 import {
   PARAM_ARGS_METADATA,
   VK_API_NAME,
@@ -32,18 +36,19 @@ import {
   VK_SCENE_MANAGER,
   VK_SESSION_MANAGER,
 } from '../vk.constants';
-import { BaseExplorerService } from './base-explorer.service';
-import { MetadataAccessorService } from './metadata-accessor.service';
 
 @Injectable()
-export class ListenersExplorerService
-  extends BaseExplorerService
-  implements OnModuleInit
-{
+export class ListenersExplorerService implements OnModuleInit {
   private readonly vkParamsFactory = new VkParamsFactory();
   private vk: VK;
 
   constructor(
+    private readonly reflector: Reflector,
+    private readonly moduleRef: ModuleRef,
+    private readonly metadataScanner: MetadataScanner,
+    private readonly modulesContainer: ModulesContainer,
+    private readonly externalContextCreator: ExternalContextCreator,
+
     @Optional()
     @Inject(VK_HEAR_MANAGER)
     private readonly hearManagerProvider: HearManager<MessageContext>,
@@ -60,15 +65,7 @@ export class ListenersExplorerService
     private readonly vkManagersOptions: VkManagersOptions | undefined,
     @Inject(VK_API_NAME)
     private readonly vkName: string,
-
-    private readonly moduleRef: ModuleRef,
-    private readonly metadataAccessor: MetadataAccessorService,
-    private readonly metadataScanner: MetadataScanner,
-    private readonly modulesContainer: ModulesContainer,
-    private readonly externalContextCreator: ExternalContextCreator,
   ) {
-    super();
-
     this.vkManagersOptions ??= {};
     this.hearManagerProvider ??= new HearManager();
     this.sessionManagerProvider ??= new SessionManager();
@@ -120,46 +117,73 @@ export class ListenersExplorerService
     this.registerScenes(modules);
   }
 
-  private registerUpdates(modules: Module[]): void {
-    const updates = this.flatMap<InstanceWrapper>(modules, (instance) =>
-      this.filterUpdates(instance),
-    );
-    updates.forEach((wrapper) =>
-      this.registerListeners(this.vk.updates, wrapper),
-    );
+  getModules(
+    modulesContainer: Map<string, Module>,
+    include: Function[],
+  ): Module[] {
+    if (!include || include.length === 0) {
+      return [...modulesContainer.values()];
+    }
+    const whitelisted = this.includeWhitelisted(modulesContainer, include);
+    return whitelisted;
   }
 
-  private filterUpdates(wrapper: InstanceWrapper): InstanceWrapper<unknown> {
-    const { instance } = wrapper;
-    if (!instance) return undefined;
+  includeWhitelisted(
+    modulesContainer: Map<string, Module>,
+    include: Function[],
+  ): Module[] {
+    const modules = [...modulesContainer.values()];
+    return modules.filter(({ metatype }) => include.includes(metatype));
+  }
 
-    const isUpdate = this.metadataAccessor.isUpdate(wrapper.metatype);
-    if (!isUpdate) return undefined;
+  private registerUpdates(modules: Module[]): void {
+    const updates = this.flatMap(modules, (wrapper) =>
+      this.filterByReflectDecorator(wrapper, VkUpdate),
+    );
+    for (const wrapper of updates) {
+      this.registerListeners(this.vk.updates, wrapper);
+    }
+  }
+
+  flatMap<T>(
+    modules: Module[],
+    callback: (wrapper: InstanceWrapper, moduleRef: Module) => T | T[],
+  ) {
+    return modules
+      .map((moduleRef) =>
+        [...moduleRef.providers.values()].map((wrapper) =>
+          callback(wrapper, moduleRef),
+        ),
+      )
+      .flat(Infinity)
+      .filter(Boolean) as NonNullable<T>[];
+  }
+
+  private filterByReflectDecorator<MT extends Function & { KEY: string }>(
+    wrapper: InstanceWrapper,
+    decorator: MT,
+  ): InstanceWrapper<unknown> | undefined {
+    const { instance } = wrapper;
+    if (!instance || !wrapper.metatype) return undefined;
+
+    const isSet = this.reflector.get(decorator, wrapper.metatype);
+    if (!isSet) return undefined;
 
     return wrapper;
   }
 
   private registerScenes(modules: Module[]): void {
     const scenes = this.flatMap<InstanceWrapper>(modules, (wrapper) =>
-      this.filterScenes(wrapper),
+      this.filterByReflectDecorator(wrapper, Scene),
     );
-    scenes.forEach((wrapper) => {
-      const sceneId = this.metadataAccessor.getSceneMetadata(
+    for (const wrapper of scenes) {
+      const sceneId = this.reflector.get<string | undefined>(
+        Scene,
         wrapper.instance.constructor,
       );
 
       this.registerSceneSteps(sceneId, wrapper);
-    });
-  }
-
-  private filterScenes(wrapper: InstanceWrapper): InstanceWrapper<unknown> {
-    const { instance } = wrapper;
-    if (!instance) return undefined;
-
-    const isScene = this.metadataAccessor.isScene(wrapper.metatype);
-    if (!isScene) return undefined;
-
-    return wrapper;
+    }
   }
 
   private registerListeners(
@@ -168,9 +192,11 @@ export class ListenersExplorerService
   ): void {
     const { instance } = wrapper;
     const prototype = Object.getPrototypeOf(instance);
-    this.metadataScanner.scanFromPrototype(instance, prototype, (name) =>
-      this.registerIfListener(updates, instance, prototype, name),
-    );
+
+    const methodNames = this.metadataScanner.getAllMethodNames(prototype);
+    for (const methodName of methodNames) {
+      this.registerIfListener(updates, instance, prototype, methodName);
+    }
   }
 
   private registerSceneSteps(
@@ -186,33 +212,22 @@ export class ListenersExplorerService
     let leaveHandler;
 
     let index = 0;
-    this.metadataScanner.scanFromPrototype(
-      instance,
-      prototype,
-      (methodName) => {
-        const methodRef = prototype[methodName];
-        const action = this.metadataAccessor.getSceneActionMetadata(methodRef);
-        if (action) {
-          if (action === 'enter') {
-            enterHandler = this.createContextCallback(
-              instance,
-              prototype,
-              methodName,
-            );
-          } else {
-            leaveHandler = this.createContextCallback(
-              instance,
-              prototype,
-              methodName,
-            );
-          }
-          return;
-        }
-        const step = this.metadataAccessor.getSceneStepMetadata(methodRef);
-        steps.push({ step: step ?? index++, methodName });
-      },
-    );
+    const methodNames = this.metadataScanner.getAllMethodNames(prototype);
+    for (const methodName of methodNames) {
+      const methodRef = prototype[methodName];
+      if (this.reflector.get(SceneEnter, methodRef)) {
+        enterHandler = this.createContextCallback(instance, methodName);
+        continue;
+      }
 
+      if (this.reflector.get(SceneLeave, methodRef)) {
+        leaveHandler = this.createContextCallback(instance, methodName);
+        continue;
+      }
+
+      const step = this.reflector.get<number | undefined>(AddStep, methodRef);
+      steps.push({ step: step ?? index++, methodName });
+    }
     const scene = new StepScene(sceneId, {
       enterHandler,
       leaveHandler,
@@ -221,7 +236,6 @@ export class ListenersExplorerService
         .map((e) => {
           const listenerCallbackFn = this.createContextCallback(
             instance,
-            prototype,
             e.methodName,
           );
           return listenerCallbackFn;
@@ -230,76 +244,82 @@ export class ListenersExplorerService
     this.sceneManager.addScenes([scene]);
   }
 
+  private getListenerMetadata(
+    methodRef: any,
+    defaultMetadata?: ListenerMetadata[],
+  ): ListenerMetadata[] | undefined {
+    return this.reflector.get(ListenerDecorator, methodRef) || defaultMetadata;
+  }
+
+  private getMergedReplyOptions(
+    instance: any,
+    methodRef: any,
+  ): IVkReplyOptions {
+    const replyOptionsAll = this.reflector.getAllAndMerge<IVkReplyOptions>(
+      VkReplyOptions,
+      [instance.constructor, methodRef],
+    );
+    return { ...this.vkOptions.replyOptions, ...replyOptionsAll };
+  }
+
   private registerIfListener(
     updates: Updates,
     instance: any,
     prototype: any,
     methodName: string,
+    defaultMetadata?: ListenerMetadata[],
   ): void {
     const methodRef = prototype[methodName];
-    const metadata = this.metadataAccessor.getListenerMetadata(methodRef);
-    if (!metadata || metadata.length < 1) {
+    const metadata = this.getListenerMetadata(methodRef, defaultMetadata);
+    const replyOptions = this.getMergedReplyOptions(instance, methodRef);
+    if (!metadata || metadata.length === 0) {
       return undefined;
     }
 
+    type MwFn = MiddlewareFn<Context> & { displayName: string };
     const listenerCallbackFn = this.createContextCallback(
       instance,
-      prototype,
       methodName,
-    );
+    ) as MwFn | undefined;
+
+    replyOptions.replyTo ??= !this.vkOptions.notReplyMessage;
 
     for (const { handlerType, method, event, args } of metadata) {
-      const getHandler =
-        () =>
-        async (ctx: Context, next: NextMiddleware): Promise<void> => {
-          const result = await listenerCallbackFn(ctx, next);
-          if (result) {
-            switch (true) {
-              case ctx.is(['message']): {
-                if (typeof result === 'string' || typeof result === 'object') {
-                  if (this.vkOptions.notReplyMessage) {
-                    await ctx.send(result);
-                  } else {
-                    await ctx.reply(result);
-                  }
-                }
-                break;
-              }
-              case ctx.is(['message_event']): {
-                const ctxEv = ctx as MessageEventContext;
-                if (typeof result === 'string' || typeof result === 'object') {
-                  if (typeof result === 'string') {
-                    await ctxEv.answer({ type: 'show_snackbar', text: result });
-                  } else {
-                    await ctxEv.answer(result);
-                  }
-                }
-                break;
-              }
-            }
-          }
-          // TODO-Possible-Feature: Add more supported return types
-        };
+      const fn: MwFn = async (ctx, next) => {
+        const result = await listenerCallbackFn(ctx, next);
+        await applyListenerResult(ctx, result, replyOptions);
+      };
+      fn.displayName = methodName;
 
       switch (handlerType) {
         case 'vk_updates': {
           if (method === 'use') {
-            updates.use(getHandler());
+            updates.use(fn);
           } else {
-            updates[method](event, [...args, getHandler()] as AllowArray<any>);
+            const updateEvent = event;
+            (
+              updates[method] as (
+                event: typeof updateEvent,
+                handlers: AllowArray<typeof fn>,
+              ) => Updates
+            )(updateEvent, [...args, fn] as AllowArray<typeof fn>);
           }
           break;
         }
         case 'hears': {
-          // if (this.vkOptions.useHearManager === false) {
-          //   break;
-          // }
-
           if (method === 'onFallback') {
-            this.hearManagerProvider.onFallback(getHandler());
+            this.hearManagerProvider.onFallback(fn);
           } else {
-            // @ts-ignore
-            this.hearManagerProvider.hear(event, ...[...args, getHandler()]);
+            (
+              this.hearManagerProvider.hear as (
+                event: VkHearsCondition,
+                ...handlers: MiddlewareFn<MessageContext>[]
+              ) => HearManager<MessageContext>
+            )(
+              event as VkHearsCondition,
+              ...(args as MiddlewareFn<MessageContext>[]),
+              fn,
+            );
           }
           break;
         }
@@ -309,7 +329,7 @@ export class ListenersExplorerService
               return next();
             }
 
-            return getHandler()(ctx, next);
+            return fn(ctx, next);
           });
           break;
         }
@@ -318,26 +338,29 @@ export class ListenersExplorerService
     }
   }
 
-  createContextCallback<T extends Record<string, unknown>>(
-    instance: T,
-    prototype: unknown,
-    methodName: string,
-  ) {
-    const paramsFactory = this.vkParamsFactory;
-    const resolverCallback = this.externalContextCreator.create<
+  private createContextCallback(instance: any, methodName: string) {
+    if (!instance || typeof instance[methodName] !== 'function') {
+      return;
+    }
+
+    const prototype = Object.getPrototypeOf(instance);
+    if (!prototype || !prototype[methodName]) {
+      return;
+    }
+
+    return this.externalContextCreator.create<
       Record<number, ParamMetadata>,
-      VkontextType
+      VkContextType
     >(
       instance,
       prototype[methodName],
       methodName,
       PARAM_ARGS_METADATA,
-      paramsFactory,
+      this.vkParamsFactory,
       undefined,
       undefined,
-      undefined,
+      { guards: true, filters: true, interceptors: true },
       'vk-io',
     );
-    return resolverCallback;
   }
 }
