@@ -1,5 +1,38 @@
 # Changelog
 
+## [4.8.0](https://github.com/xTCry/nestjs-vk/compare/v4.7.0...v4.8.0) (2026-08-14)
+
+### 🚀 Features
+
+* **`README.md`:** add ([dc20cdc](https://github.com/xTCry/nestjs-vk/commit/dc20cdc8514909777c44f540c492ce085e15b6a7))
+* **decorators:** support string message event payload matches ([4f1da71](https://github.com/xTCry/nestjs-vk/commit/4f1da71d653541d54e48001d09830a50b63aa08e))
+* **listeners:** support message event handler return values ([4a31347](https://github.com/xTCry/nestjs-vk/commit/4a3134773f63262d61933b381d14f4016df67cfa))
+* **module:** add named manager tokens ([e145d13](https://github.com/xTCry/nestjs-vk/commit/e145d138261c9079e40972a350bd14fc8f27d875))
+* **module:** allow disabling all managers at once ([7e02fb5](https://github.com/xTCry/nestjs-vk/commit/7e02fb53931af1191cb62252184cd84eceebca2b))
+
+### 🐛 Bug Fixes
+
+* **module:** isolate core providers by bot name ([8a584a9](https://github.com/xTCry/nestjs-vk/commit/8a584a9ee8f6abe73ce5869f099aa67b786d70f7))
+
+### 📖 Documentation
+
+* **readme:** clarify manager middleware setup ([b01fa8f](https://github.com/xTCry/nestjs-vk/commit/b01fa8fa65f4a958f003b13f320db9d5becd7981))
+
+### 🔧 Code Refactoring
+
+* **listeners:** modernize metadata discovery ([4377ff4](https://github.com/xTCry/nestjs-vk/commit/4377ff45147b5cccce89c575ad1a52a436875390))
+
+### 🛠️ CI
+
+* add package verification workflow ([f8efa28](https://github.com/xTCry/nestjs-vk/commit/f8efa28d5dc6ffb0b76d8a32fb2e675507e7f213))
+* upgrade workflow to node 24 ([94fc2f5](https://github.com/xTCry/nestjs-vk/commit/94fc2f57c19b3819530c895111e76051c5c79018))
+* upgrade workflow to node 24 ([df717d4](https://github.com/xTCry/nestjs-vk/commit/df717d4852ee4a04051a12fd9966c3a6c1b8fd0f))
+
+### 🌟 Samples
+
+* demonstrate string message event payload matching ([ec6e042](https://github.com/xTCry/nestjs-vk/commit/ec6e042604e2eb086167e2ba6ad237b4c50c0803))
+* **multibot:** clarify named manager usage ([9fd63fc](https://github.com/xTCry/nestjs-vk/commit/9fd63fcbf86bfbf7d840579f03e94fd896435987))
+
 ## [4.7.0](https://github.com/xTCry/nestjs-vk/compare/v4.6.1...v4.7.0) (2026-08-12)
 
 ### 🧹 Chore
