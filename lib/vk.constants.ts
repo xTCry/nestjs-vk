@@ -3,6 +3,8 @@ import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 export const VK_MODULE_OPTIONS = 'VK_MODULE_OPTIONS';
 export const VK_MANAGERS_OPTIONS = 'VK_MANAGERS_OPTIONS';
 export const VK_API_NAME = 'VK_API_NAME';
+export const VK_LISTENERS_EXPLORER = 'VkListenersExplorer';
+export const VK_SHUTDOWN_SERVICE = 'VkShutdownService';
 export const DEFAULT_VK_API_NAME = 'DEFAULT_VK_API_NAME';
 
 export const VK_UPDATE_METADATA = 'VK_UPDATE_METADATA';

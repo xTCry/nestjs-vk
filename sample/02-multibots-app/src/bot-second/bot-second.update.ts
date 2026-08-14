@@ -14,18 +14,18 @@ import { VkExceptionFilter } from '../common';
 
 @Update()
 @UseFilters(VkExceptionFilter)
-export class BotSecondlUpdate {
+export class BotSecondUpdate {
   constructor(
-    @InjectVkHearManager() // @Inject(VK_HEAR_MANAGER)
-    private readonly hearManagerProvider: HearManager<MessageContext>,
-    @InjectVkSessionManager() // @Inject(VK_SESSION_MANAGER)
-    private readonly sessionManagerProvider: SessionManager,
+    @InjectVkHearManager('secondBot')
+    private readonly secondBotHearManager: HearManager<MessageContext>,
+    @InjectVkSessionManager('secondBot')
+    private readonly secondBotSessionManager: SessionManager,
   ) {
-    this.hearManagerProvider.hear('wow', (ctx) => {
+    this.secondBotHearManager.hear('wow', (ctx) => {
       ctx.send('Wohoh');
     });
 
-    console.log('[BotSecondlUpdate] ctr', this.hearManagerProvider.length);
+    console.log('[BotSecondUpdate] ctr', this.secondBotHearManager.length);
   }
 
   @Hears('/second')
@@ -36,10 +36,10 @@ export class BotSecondlUpdate {
   @Hears('/info2')
   onInfoCommand() {
     const message = `
-    Info:
-    • hearManagerProvider.length: ${this.hearManagerProvider.length}
-    • sessionManagerProvider.length: ${JSON.stringify(
-      this.sessionManagerProvider,
+    Info2:
+    • secondBotHearManager.length: ${this.secondBotHearManager.length}
+    • secondBotSessionManager: ${JSON.stringify(
+      this.secondBotSessionManager,
     ).slice(0, 150)}
     `;
     return message;

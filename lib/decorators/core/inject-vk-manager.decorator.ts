@@ -1,13 +1,16 @@
 import { Inject } from '@nestjs/common';
 
 import {
-  VK_HEAR_MANAGER,
-  VK_SCENE_MANAGER,
-  VK_SESSION_MANAGER,
-} from '../../vk.constants';
+  getVkHearManagerToken,
+  getVkSceneManagerToken,
+  getVkSessionManagerToken,
+} from '../../utils';
 
-export const InjectVkHearManager = () => Inject(VK_HEAR_MANAGER);
+export const InjectVkHearManager = (vkName?: string) =>
+  Inject(getVkHearManagerToken(vkName));
 
-export const InjectVkSessionManager = () => Inject(VK_SESSION_MANAGER);
+export const InjectVkSessionManager = (vkName?: string) =>
+  Inject(getVkSessionManagerToken(vkName));
 
-export const InjectVkSceneManager = () => Inject(VK_SCENE_MANAGER);
+export const InjectVkSceneManager = (vkName?: string) =>
+  Inject(getVkSceneManagerToken(vkName));
