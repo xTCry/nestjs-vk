@@ -62,7 +62,7 @@ export class ListenersExplorerService implements OnModuleInit {
     private readonly vkOptions: VkModuleOptions,
     @Optional()
     @Inject(VK_MANAGERS_OPTIONS)
-    private readonly vkManagersOptions: VkManagersOptions,
+    private readonly vkManagersOptions: VkManagersOptions | undefined,
     @Inject(VK_API_NAME)
     private readonly vkName: string,
   ) {

@@ -7,6 +7,7 @@ jest.mock('vk-io', () => ({
   },
   VK: jest.fn().mockImplementation(() => ({
     updates: {
+      on: jest.fn(),
       start: jest.fn(),
       stop: jest.fn(),
       use: jest.fn(),
@@ -17,7 +18,14 @@ jest.mock('vk-io', () => ({
 jest.mock('@vk-io/hear', () => ({
   HearManager: class {
     middleware = jest.fn();
-    hear = jest.fn();
+    handlers: unknown[] = [];
+    get length() {
+      return this.handlers.length;
+    }
+    hear = jest.fn((...args) => {
+      this.handlers.push(args);
+      return this;
+    });
     onFallback = jest.fn();
   },
 }));

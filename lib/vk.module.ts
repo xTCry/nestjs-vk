@@ -2,16 +2,12 @@ import { DynamicModule, Module } from '@nestjs/common';
 
 import {
   VkManagersOptions,
+  VkManagersOptionsInput,
   VkModuleAsyncOptions,
   VkModuleOptions,
 } from './interfaces';
-import {
-  hearManagerProvider,
-  sceneManagerProvider,
-  sessionManagerProvider,
-} from './providers';
+import { getVkManagersOptionsToken } from './utils';
 import { VkCoreModule } from './vk-core.module';
-import { VK_MANAGERS_OPTIONS } from './vk.constants';
 
 @Module({})
 export class VkModule {
@@ -22,15 +18,15 @@ export class VkModule {
     };
   }
 
-  public static forManagers(options: VkManagersOptions): DynamicModule {
+  public static forManagers(
+    options: VkManagersOptionsInput,
+    vkName?: string,
+  ): DynamicModule {
     const providers = [
       {
-        provide: VK_MANAGERS_OPTIONS,
-        useValue: options,
+        provide: getVkManagersOptionsToken(vkName),
+        useValue: this.normalizeManagersOptions(options),
       },
-      sessionManagerProvider,
-      sceneManagerProvider,
-      hearManagerProvider,
     ];
 
     return {
@@ -45,6 +41,20 @@ export class VkModule {
     return {
       module: VkModule,
       imports: [VkCoreModule.forRootAsync(options)],
+    };
+  }
+
+  private static normalizeManagersOptions(
+    options: VkManagersOptionsInput,
+  ): VkManagersOptions {
+    if (options !== false) {
+      return options;
+    }
+
+    return {
+      useSessionManager: false,
+      useSceneManager: false,
+      useHearManager: false,
     };
   }
 }
