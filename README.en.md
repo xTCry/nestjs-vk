@@ -101,14 +101,15 @@ export class AppUpdate {
 
 Use `VkModule.forManagers()` only when you need to:
 
-- disable one of the default managers;
-- disable all default managers with a single `false` value;
+- disable automatic middleware attachment for one of the default managers;
+- disable automatic middleware attachment for all managers with a single `false`
+  value;
 - pass your own manager instance;
-- disable automatic manager middleware registration and attach it manually in
-  `middlewaresBefore` / `middlewaresAfter`;
 - apply these settings to a specific `vkName`.
 
-To disable `SessionManager`, `SceneManager` and `HearManager` at once:
+To prevent the module from automatically attaching `SessionManager.middleware`,
+`SceneManager.middleware`, `SceneManager.middlewareIntercept` and
+`HearManager.middleware`:
 
 ```typescript
 VkModule.forManagers(false);
@@ -131,6 +132,11 @@ For a named bot, it works the same way:
 ```typescript
 VkModule.forManagers(false, 'firstBot');
 ```
+
+`false` does not remove manager providers from the DI container: they can still
+be injected with `@InjectVkHearManager()`, `@InjectVkSessionManager()` and
+`@InjectVkSceneManager()`. It only controls automatic middleware attachment to
+`vk.updates`.
 
 `forManagers()` does not create a second manager instance on top of `forRoot()`.
 It provides options that `forRoot()` / `forRootAsync()` use when creating and
@@ -164,7 +170,7 @@ import { SimpleScene } from './scene/simple.scene';
 @Module({
   imports: [
     VkModule.forRootAsync({
-      inject: [MainMiddleware],
+inject: [MainMiddleware],
       useFactory: async (mainMiddleware: MainMiddleware) => ({
         token: process.env.VK_BOT_TOKEN,
         options: {
@@ -179,7 +185,7 @@ import { SimpleScene } from './scene/simple.scene';
     }),
   ],
   providers: [MainMiddleware, AppUpdate, SimpleScene],
-  exports: [MainMiddleware],
+exports: [MainMiddleware],
 })
 export class AppModule {}
 ```
