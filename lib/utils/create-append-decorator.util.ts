@@ -5,7 +5,10 @@ import {
   CustomDecorator,
 } from '../decorators/core/append-metadata.decorator';
 
-export interface CreateDecoratorOptions<TParam = any, TTransformed = TParam> {
+export interface CreateDecoratorOptions<
+  TParam = unknown,
+  TTransformed = TParam,
+> {
   /**
    * The key for the metadata.
    * @default uid(21)
@@ -41,7 +44,11 @@ export function createAppendDecorator<TParam, TTransformed = TParam>(
   const metadataKey = options.key ?? uid(21);
   const decoratorFn =
     (metadataValue: TParam) =>
-    (target: object | Function, key?: string | symbol, descriptor?: any) => {
+    (
+      target: object | Function,
+      key?: string | symbol,
+      descriptor?: TypedPropertyDescriptor<Function>,
+    ) => {
       if (key === undefined) {
         return;
       }
@@ -49,7 +56,11 @@ export function createAppendDecorator<TParam, TTransformed = TParam>(
       const value = options.transform
         ? options.transform(metadataValue)
         : metadataValue;
-      AppendMetadata(metadataKey, value ?? {})(target, key, descriptor);
+      const decorator = AppendMetadata(metadataKey, value ?? {});
+
+      return descriptor
+        ? decorator(target, key, descriptor)
+        : decorator(target as Function);
     };
 
   decoratorFn.KEY = metadataKey;

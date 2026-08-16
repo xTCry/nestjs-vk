@@ -1,4 +1,5 @@
 import { Inject, Injectable, OnModuleInit, Optional } from '@nestjs/common';
+import { Controller } from '@nestjs/common/interfaces';
 import { ModuleRef, ModulesContainer, Reflector } from '@nestjs/core';
 import { ExternalContextCreator } from '@nestjs/core/helpers/external-context-creator';
 import { ParamMetadata } from '@nestjs/core/helpers/interfaces';
@@ -9,7 +10,7 @@ import { Middleware as MiddlewareFn, NextMiddleware } from 'middleware-io';
 import { Composer, Context, MessageContext, Updates, VK } from 'vk-io';
 import { AllowArray } from 'vk-io/lib/types';
 import { HearManager } from '@vk-io/hear';
-import { SceneManager, StepScene } from '@vk-io/scenes';
+import { SceneManager, StepScene, StepSceneHandler } from '@vk-io/scenes';
 import { SessionManager } from '@vk-io/session';
 
 import { Scene, VkReplyOptions, VkUpdate } from '../decorators';
@@ -200,7 +201,14 @@ export class ListenersExplorerService implements OnModuleInit {
     wrapper: InstanceWrapper<unknown>,
   ): void {
     const { instance } = wrapper;
-    const prototype = Object.getPrototypeOf(instance);
+    if (!instance || typeof instance !== 'object') {
+      return;
+    }
+
+    const prototype = Object.getPrototypeOf(instance) as Record<
+      string,
+      Function
+    >;
 
     const methodNames = this.metadataScanner.getAllMethodNames(prototype);
     for (const methodName of methodNames) {
@@ -210,7 +218,7 @@ export class ListenersExplorerService implements OnModuleInit {
 
   private registerSceneSteps(
     sceneId: string,
-    wrapper: InstanceWrapper<any>,
+    wrapper: InstanceWrapper<object>,
   ): void {
     const { instance } = wrapper;
     const prototype = Object.getPrototypeOf(instance);
@@ -247,22 +255,22 @@ export class ListenersExplorerService implements OnModuleInit {
             instance,
             e.methodName,
           );
-          return listenerCallbackFn!;
+          return listenerCallbackFn as StepSceneHandler;
         }),
     });
     this.sceneManager.addScenes([scene]);
   }
 
   private getListenerMetadata(
-    methodRef: any,
+    methodRef: Function,
     defaultMetadata?: ListenerMetadata[],
   ): ListenerMetadata[] | undefined {
     return this.reflector.get(ListenerDecorator, methodRef) || defaultMetadata;
   }
 
   private getMergedReplyOptions(
-    instance: any,
-    methodRef: any,
+    instance: object,
+    methodRef: Function,
   ): IVkReplyOptions {
     const replyOptionsAll = this.reflector.getAllAndMerge<IVkReplyOptions>(
       VkReplyOptions,
@@ -273,8 +281,8 @@ export class ListenersExplorerService implements OnModuleInit {
 
   private registerIfListener(
     updates: Updates,
-    instance: any,
-    prototype: any,
+    instance: object,
+    prototype: Record<string, Function>,
     methodName: string,
     defaultMetadata?: ListenerMetadata[],
   ): void {
@@ -351,12 +359,15 @@ export class ListenersExplorerService implements OnModuleInit {
     }
   }
 
-  private createContextCallback(instance: any, methodName: string) {
-    if (!instance || typeof instance[methodName] !== 'function') {
+  private createContextCallback(instance: object, methodName: string) {
+    const instanceRecord = instance as Record<string, unknown>;
+    if (typeof instanceRecord[methodName] !== 'function') {
       return;
     }
 
-    const prototype = Object.getPrototypeOf(instance);
+    const prototype = Object.getPrototypeOf(instance) as
+      | Record<string, (...args: unknown[]) => unknown>
+      | undefined;
     if (!prototype || !prototype[methodName]) {
       return;
     }

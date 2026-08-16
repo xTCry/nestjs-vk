@@ -1,16 +1,19 @@
 export type CustomDecorator<TKey = string> = MethodDecorator &
   ClassDecorator & { KEY: TKey };
 
-export const AppendMetadata = <K = string, V = any>(
+type MetadataTarget = object | Function;
+type DecoratedDescriptor = TypedPropertyDescriptor<Function>;
+
+export const AppendMetadata = <K = string, V = unknown>(
   metadataKey: K,
   metadataValue: V,
 ) => {
   const decoratorFactory = (
-    target: object,
+    target: MetadataTarget,
     _key?: string | symbol,
-    descriptor?: TypedPropertyDescriptor<any>,
+    descriptor?: DecoratedDescriptor,
   ) => {
-    if (descriptor) {
+    if (descriptor?.value) {
       const previousValue =
         Reflect.getMetadata(metadataKey, descriptor.value) || [];
       const value = [...previousValue, metadataValue];
