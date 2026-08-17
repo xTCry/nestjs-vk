@@ -28,7 +28,7 @@ export type VkUseListenerArgs = VkListenerDecoratorArgs<undefined>;
 export type VkHearsMiddleware = Middleware<Context>;
 
 export type VkHearsListenerArgs = VkListenerDecoratorArgs<
-  HearConditions<Record<string, any>>,
+  HearConditions<Record<string, unknown>>,
   VkHearsMiddleware[]
 >;
 

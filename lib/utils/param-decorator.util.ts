@@ -1,14 +1,20 @@
-import { assignMetadata, PipeTransform, Type } from '@nestjs/common';
+import { assignMetadata, ParamData, PipeTransform, Type } from '@nestjs/common';
 import { isNil, isString } from '@nestjs/common/utils/shared.utils';
 
 import { VkParamtype } from '../execution-context';
 import { PARAM_ARGS_METADATA } from '../vk.constants';
 
-export type ParamData = object | string | number;
+type PipesParamData = ParamData | Type<PipeTransform> | PipeTransform;
+type VkParameterDecoratorTarget = object & { constructor: Function };
+type VkPipe = Type<PipeTransform> | PipeTransform;
 
 export const createVkParamDecorator = (paramtype: VkParamtype) => {
   return (data?: ParamData): ParameterDecorator =>
     (target, key, index) => {
+      if (key === undefined) {
+        return;
+      }
+
       const args =
         Reflect.getMetadata(PARAM_ARGS_METADATA, target.constructor, key) || {};
       Reflect.defineMetadata(
@@ -22,27 +28,30 @@ export const createVkParamDecorator = (paramtype: VkParamtype) => {
 
 export const createVkPipesParamDecorator =
   (paramtype: VkParamtype) =>
-  (
-    data?: any,
-    ...pipes: (Type<PipeTransform> | PipeTransform)[]
-  ): ParameterDecorator =>
+  (data?: PipesParamData, ...pipes: VkPipe[]): ParameterDecorator =>
   (target, key, index) => {
+    if (key === undefined) {
+      return;
+    }
+
     addPipesMetadata(paramtype, data, pipes, target, key, index);
   };
 
 export const addPipesMetadata = (
   paramtype: VkParamtype,
-  data: any,
-  pipes: (Type<PipeTransform> | PipeTransform)[],
-  target: Record<string, any>,
+  data: PipesParamData | undefined,
+  pipes: VkPipe[],
+  target: VkParameterDecoratorTarget,
   key: string | symbol,
   index: number,
 ) => {
   const args =
     Reflect.getMetadata(PARAM_ARGS_METADATA, target.constructor, key) || {};
-  const hasParamData = isNil(data) || isString(data);
+  const hasParamData =
+    isNil(data) || isString(data) || typeof data === 'number';
   const paramData = hasParamData ? data : undefined;
-  const paramPipes = hasParamData ? pipes : [data, ...pipes];
+  const paramPipes: VkPipe[] =
+    hasParamData || data === undefined ? pipes : [data as VkPipe, ...pipes];
 
   Reflect.defineMetadata(
     PARAM_ARGS_METADATA,

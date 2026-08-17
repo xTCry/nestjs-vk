@@ -1,4 +1,9 @@
-import { ModuleMetadata, Type } from '@nestjs/common/interfaces';
+import {
+  InjectionToken,
+  ModuleMetadata,
+  OptionalFactoryDependency,
+  Type,
+} from '@nestjs/common/interfaces';
 import { Middleware } from 'middleware-io';
 import { IWebhookTransportStartOptions, MessageContext } from 'vk-io';
 import { VKOptions } from 'vk-io/lib/types';
@@ -23,8 +28,8 @@ export interface VkModuleOptions {
    */
   vkName?: string;
 
-  middlewaresBefore?: ReadonlyArray<Middleware<any>>;
-  middlewaresAfter?: ReadonlyArray<Middleware<any>>;
+  middlewaresBefore?: ReadonlyArray<Middleware<MessageContext>>;
+  middlewaresAfter?: ReadonlyArray<Middleware<MessageContext>>;
 
   replyOptions?: IVkReplyOptions;
   /** @deprecated Instead use `{ replyOptions: { replyTo: false } }` */
@@ -51,8 +56,10 @@ export interface VkModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
   vkName?: string;
   useExisting?: Type<VkOptionsFactory>;
   useClass?: Type<VkOptionsFactory>;
-  useFactory?: (...args: any[]) => Promise<VkModuleOptions> | VkModuleOptions;
-  inject?: any[];
+  useFactory?: (
+    ...args: unknown[]
+  ) => Promise<VkModuleOptions> | VkModuleOptions;
+  inject?: Array<InjectionToken | OptionalFactoryDependency>;
 }
 
 export type IVkReplyOptions = {

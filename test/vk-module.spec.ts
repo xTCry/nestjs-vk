@@ -50,6 +50,14 @@ class SecondBotModule {}
 
 let manuallyInjectedSecondHearManager: HearManager<MessageContext> | undefined;
 
+function getManualSecondHearManager(): HearManager<MessageContext> {
+  if (!manuallyInjectedSecondHearManager) {
+    throw new Error('second bot hear manager is not injected');
+  }
+
+  return manuallyInjectedSecondHearManager;
+}
+
 @Update()
 class ManualSecondBotUpdate {
   constructor(
@@ -433,7 +441,8 @@ describe('VkModule', () => {
     expect(secondExplorer.hearManagerProvider).toBe(
       manuallyInjectedSecondHearManager,
     );
-    expect(manuallyInjectedSecondHearManager?.length).toBe(2);
+
+    expect(getManualSecondHearManager().length).toBe(2);
 
     await moduleRef.close();
   });
